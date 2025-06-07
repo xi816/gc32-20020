@@ -15,11 +15,11 @@ int32_t main(int argc, char** argv) {
   char* targets[]         = {"gc32-20020", "gboot", "mkfs.govnfs", "ugovnfs", "prepare-disk"};
   char* install_targets[] = {"gc32-20020", "gboot", "mkfs.govnfs", "ugovnfs", "prepare-disk", "kasm"};
   char* build_commands[] = {
-    "gcc -Wall -Wextra --std=gnu99 core/main.c -Ilib/ -lm -lSDL2 -o gc32-20020",
-    "gcc -Wall -Wextra --std=gnu99 core/gboot/main.c -o gboot",
-    "gcc -Wall -Wextra --std=gnu99 core/mkfs.govnfs/main.c -o mkfs.govnfs",
-    "gcc -Wall -Wextra --std=gnu99 core/ugovnfs/main.c -Ilib/ -lm -o ugovnfs",
-    "gcc -Wall -Wextra --std=gnu99 core/prepare-disk.c -o prepare-disk"
+    "gcc -Wall --std=gnu99 core/main.c -Ilib/ -lm -lSDL2 -o gc32-20020",
+    "gcc -Wall --std=gnu99 core/gboot/main.c -o gboot",
+    "gcc -Wall --std=gnu99 core/mkfs.govnfs/main.c -o mkfs.govnfs",
+    "gcc -Wall --std=gnu99 core/ugovnfs/main.c -Ilib/ -lm -o ugovnfs",
+    "gcc -Wall --std=gnu99 core/prepare-disk.c -o prepare-disk"
   };
   char* install_commands[] = {
     "install gc32-20020 /usr/local/bin/",

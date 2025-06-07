@@ -337,72 +337,6 @@ U8 INT(GC* gc) {
   U8 i = gc->mem[gc->EPC+1];
   INTERRUPTS[i](gc, i);
 
-  // switch (gc->mem[gc->EPC+1]) {
-  // case INT_EXIT:
-  //   gc_errno = StackPop(gc);
-  //   return 1;
-  // case INT_READ:
-  //   char a = getchar();
-  //   StackPush(gc, a);
-  //   break;
-  // case INT_WRITE:
-  //   putchar(StackPop(gc));
-  //   fflush(stdout);
-  //   break;
-  // case INT_RESET:
-  //   Reset(gc);
-  //   return 0;
-  // case INT_CANREAD:
-  //   struct pollfd pfds[1];
-  //   pfds[0].fd = fileno(stdin);
-  //   pfds[0].events = POLLIN;
-  //   pfds[0].revents = 0;
-  //   poll(&pfds[0], 1, 0);
-  //   gc->reg[EDX] = pfds[0].revents & POLLIN ? 1 : 0;
-  //   break;
-  // case INT_CPUID:
-  //   gc->reg[EAX] = GC32_NAME_00;
-  //   gc->reg[EBX] = GC32_NAME_01;
-  //   gc->reg[ECX] = GC32_NAME_02;
-  //   gc->reg[EDX] = GC32_NAME_03;
-  //   gc->reg[ESI] = PROC_TYPE_GC32;
-  //   gc->reg[E8]  = MEMSIZE;
-  // case INT_VIDEO_FLUSH:
-  //   GGpage(gc);
-  //   break;
-  // case INT_VIDEO_CLEAR:
-  //   GGflush(gc);
-  //   break;
-  // case INT_PPU_DRAW:
-  //   GGsprite_256(gc);
-  //   break;
-  // case INT_PPU_READ:
-  //   GGsprite_read_256(gc);
-  //   break;
-  // case INT_PPU_DRAWM:
-  //   GGsprite_mono(gc);
-  //   break;
-  // case INT_RAND:
-  //   gc->reg[EDX] = rand() % 65536;
-  //   break;
-  // case INT_DATE:
-  //   gc->reg[EDX] = GC_GOVNODATE();
-  //   break;
-  // case INT_WAIT:
-  //   usleep((U32)(gc->reg[EDX])*1000); // the maximum is about 65.5 seconds
-  //   if(hid_events(gc)) {
-  //     gc_errno = 0;
-  //     return 1;
-  //   }
-  //   break;
-  // case INT_BEEP:
-  //   double freq = (double)StackPop(gc);
-  //   PlayBeep(freq);
-  //   break;
-  // default:
-  //   fprintf(stderr, "gc32-20020: \033[91mIllegal\033[0m hardware interrupt: $%02X\n", gc->mem[gc->EPC+1]);
-  //   return 1;
-  // }
   intend: gc->EPC += 2;
   return 0;
 }
@@ -997,6 +931,11 @@ U8 INT_CPU(GC* gc, U8 I) { // 0A cpuid
   return 0;
 }
 
+U8 INT_SGF(GC* gc, U8 I) { // 0F segfault
+  *((char*)0) = 42; // 0x00000 is protected + unmapped in 64-bit
+  return 0;
+}
+
 U8 INT_GFL(GC* gc, U8 I) { // 11 gflush
   GGpage(gc);
   return 0;
@@ -1049,7 +988,7 @@ U8 INT_UNK(GC* gc, U8 I) {
 }
 
 U8 (*INTERRUPTS[64])(GC*,U8) = {
-  &INT_UNK, &INT_RED, &INT_WRT, &INT_DAT, &INT_RES, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_CNR, &INT_CPU, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK,
+  &INT_UNK, &INT_RED, &INT_WRT, &INT_DAT, &INT_RES, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_CNR, &INT_CPU, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_SGF,
   &INT_UNK, &INT_GFL, &INT_GCL, &INT_GD2, &INT_GDM, &INT_GRD, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK,
   &INT_UNK, &INT_RND, &INT_WAI, &INT_BEP, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK,
   &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK,
