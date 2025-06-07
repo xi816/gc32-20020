@@ -17,8 +17,17 @@ govnos_gsfetch:
   ; CPU name
   mov %esi gsfc_003
   int $81
+  int $A ; cpuid
+  mov %egi env_CPU
+  sd %egi %eax
+  sd %egi %ebx
+  sd %egi %ecx
+  sd %egi %edx
+  sd %egi %esi
   mov %esi env_CPU
   int $81
+  psh '$'
+  int $2
 
   ; Memory
   mov %esi gsfc_004
