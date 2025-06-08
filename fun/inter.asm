@@ -7,35 +7,35 @@ inter_main:
 
   mov %esi $4A0000
   mov %eax $01FF
-  stow %esi %eax
+  sw %esi %eax
   mov %eax $318C
-  stow %esi %eax
+  sw %esi %eax
   mov %eax $01BA
-  stow %esi %eax
+  sw %esi %eax
   mov %eax $7FFF
-  stow %esi %eax
+  sw %esi %eax
   int $12
 
   mov %esi $447180
   mov %ecx 15999
   mov %eax $01
 .draw_panel:
-  stob %esi %eax
-  loop .draw_panel
+  sb %esi %eax
+  lp .draw_panel
   int $11
 
   ; int $01
   ; pop %edx
 
-aloop:
+alp:
 ; Check key state
   mov %eax $480005
   mov %ecx 5
 .kbdloop:
-  lodb %eax %edx
+  lb %eax %edx
   cmp %edx 0
   jne .noCur
-  loop .kbdloop
+  lp .kbdloop
   ; Hehe
 .check_serial:
   int $9
@@ -43,61 +43,61 @@ aloop:
   jne .popi
   ; Clear old cursor
   mov %eax old_cur_pos
-  lodw %eax %ebx
-  lodw %eax %ecx
+  lw %eax %ebx
+  lw %eax %ecx
   mov %egi old_on_cur
-  call spr
+  jsr spr
 
   mov %eax $480000
-  lodw %eax %ebx
-  lodw %eax %ecx
-  lodb %eax %edx ; Mouse state
+  lw %eax %ebx
+  lw %eax %ecx
+  lb %eax %edx ; Mouse state
   mov %e8 old_mouse_pos
-  lodb %e8 %e9
+  lb %e8 %e9
   cmp %edx %e9
   jne .first_mouse_check
   jmp .mouse_checked
 .first_mouse_check:
   mov %e8 old_mouse_pos
-  stob %e8 %edx
+  sb %e8 %edx
   cmp %edx 2
   je .pressedc
   jmp .pressedca
 .pressedc:
-  call .pressed
+  jsr .pressed
 .pressedca:
 .mouse_checked:
   mov %egi old_on_cur
-  call read_spr
+  jsr read_spr
   mov %egi cursor
-  call spr
+  jsr spr
   mov %esi old_cur_pos
-  stow %esi %ebx
-  stow %esi %ecx
+  sw %esi %ebx
+  sw %esi %ecx
 .noCur:
   int $11
   mov %edx 8
   int $22
-  jmp aloop
+  jmp alp
 .popi:
   int $1
   pop %edx
   jmp .check_serial
 .pressed:
   mov %e9 $4A0000
-  lodw %e9 %e10
-  lodw %e9 %e11
-  lodw %e9 %e12
-  lodw %e9 %e13
+  lw %e9 %e10
+  lw %e9 %e11
+  lw %e9 %e12
+  lw %e9 %e13
   inx %e10 inx %e11 inx %e12
   mov %e9 $4A0000
-  stow %e9 %e10
-  stow %e9 %e11
-  stow %e9 %e12
-  stow %e9 %e13
-  push 'a'
+  sw %e9 %e10
+  sw %e9 %e11
+  sw %e9 %e12
+  sw %e9 %e13
+  psh 'a'
   int 2
-  ret
+  rts
 
 spr:
   mov %esi %ecx
@@ -105,7 +105,7 @@ spr:
   add %esi %ebx
   add %esi $400000
   int $13
-  ret
+  rts
 
 read_spr:
   mov %esi %ecx
@@ -113,7 +113,7 @@ read_spr:
   add %esi %ebx
   add %esi $400000
   int $15
-  ret
+  rts
 
 old_cur_pos:   reserve 4 bytes
 old_mouse_pos: reserve 1 bytes

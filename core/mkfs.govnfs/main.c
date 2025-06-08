@@ -7,9 +7,10 @@
 #define HEADER_SIZE 32
 
 int main(int argc, char** argv) {
+  uint8_t i;
   uint8_t HEADER[HEADER_SIZE] = "\x42GOVNFS2.0\0\0\0\0\0\0Z";
   srand(time(NULL));
-  for (uint8_t i = 0x0C; i < 0x10; i++) {
+  for (i = 0x0C; i < 0x10; i++) {
     HEADER[i] = rand() % 256;
   }
 

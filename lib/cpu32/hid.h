@@ -6,27 +6,28 @@ U0 move_mouse(GC* gc, U16 x, U16 y) {
     WriteWord(gc, HID_ADDR + 2, y);
 }
 U0 mouse_btn(GC* gc, U8 id, U8 val) {
-    U8 flag = gc->mem[HID_ADDR + 4];
-    if (val) {
-        flag |= 1 << id;
-    } else {
-        flag &= ~(1 << id);
-    }
-    gc->mem[HID_ADDR + 4] = flag;
+  U8 flag = gc->mem[HID_ADDR + 4];
+  if (val) {
+    flag |= 1 << id;
+  } else {
+    flag &= ~(1 << id);
+  }
+  gc->mem[HID_ADDR + 4] = flag;
 }
 // Keyboard is basically an api for USB-HID
 // https://wiki.libsdl.org/SDL2/SDL_Scancode
 #define MAX_KEYS 6
 U0 kbd_btn(GC* gc, U16 id, U8 val) {
+  U8 i;
   if (val) {
-    for (U8 i = 0; i < MAX_KEYS; i++) {
+    for (i = 0; i < MAX_KEYS; i++) {
       if (gc->mem[HID_ADDR + 5 + i] == 0) {
         gc->mem[HID_ADDR + 5 + i] = id;
         return;
       }
     }
   } else {
-    for (U8 i = 0; i < MAX_KEYS; i++) {
+    for (i = 0; i < MAX_KEYS; i++) {
       if (gc->mem[HID_ADDR + 5 + i] == id) {
         gc->mem[HID_ADDR + 5 + i] = 0;
         return;

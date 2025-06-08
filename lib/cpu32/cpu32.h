@@ -1042,9 +1042,10 @@ U8 PG0F(GC* gc) {   // 0FH
 }
 
 U0 Reset(GC* gc) {
+  U8 i;
   gc->EPC = 0x00700000;
   // Reset the general purpose registers
-  for (U8 i = 0; i < 32; i++)
+  for (i = 0; i < 32; i++)
     gc->reg[i] = 0x00000000;
   gc->reg[ESP] = 0x00FEFFFF;
   gc->reg[EBP] = 0x00FEFFFF;
@@ -1056,21 +1057,24 @@ U0 Reset(GC* gc) {
 }
 
 U0 PageDump(GC* gc, U8 page) {
-  for (U16 i = (page*256); i < (page*256)+256; i++) {
+  U16 i;
+  for (i = (page*256); i < (page*256)+256; i++) {
     if (!(i % 16)) putchar(10);
     printf("%02X ", gc->mem[i]);
   }
 }
 
 U0 StackDump(GC* gc, U16 c) {
-  for (U32 i = 0xFEFFFF; i > (U32)(0xFEFFFF-c); i--) {
+  U32 i;
+  for (i = 0xFEFFFF; i > (U32)(0xFEFFFF-c); i--) {
     if (i != gc->reg[ESP]) printf("%08X: %02X\n", i, gc->mem[i]);
     else                   printf("\033[92m%08X: %02X\033[0m\n", i, gc->mem[i]);
   }
 }
 
 U0 MemDump(GC* gc, U32 start, U32 end, U8 newline) {
-  for (U32 i = start; i < end; i++) {
+  U32 i;
+  for (i = start; i < end; i++) {
     printf("%02X ", gc->mem[i]);
   }
   putchar(8);

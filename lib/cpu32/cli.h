@@ -13,7 +13,8 @@ I8* regf[32] = {
 };
 
 U0 cli_DisplayReg(GC* gc) {
-  for (U8 i = 0; i < 32; i++) {
+  U8 i;
+  for (i = 0; i < 32; i++) {
     if ((i != 0) && !(i%4)) putchar(10);
     printf("%s:\033[93m$%08X\033[0m  ", regf[i], gc->reg[i]);
   }
@@ -23,7 +24,8 @@ U0 cli_DisplayReg(GC* gc) {
 }
 
 U0 cli_DisplayStack(GC* gc, U16 N) {
-  for (U8 i = 0; i < N; i++) {
+  U8 i;
+  for (i = 0; i < N; i++) {
     printf("\033[93m%08X\033[0m\t\033[96m$%08X\033[0m\n", 0xFEFFFF-(i*3),
       ((gc->mem[0xFEFFFF-(i*3-2)]) + (gc->mem[0xFEFFFF-(i*3-1)] << 8) + (gc->mem[0xFEFFFF-(i*3)] << 16)));
   }
@@ -46,7 +48,8 @@ U8 putmc(U8 c) {
 
 U8 cli_DisplayMem(GC* gc, U16 page) {
   fputs("\033[A", stdout);
-  for (U32 i = page*256; i < (U32)(page*256+256); i++) {
+  U32 i;
+  for (i = page*256; i < (U32)(page*256+256); i++) {
     if (!(i % 16)) {
       printf("\n%08X  ", i);
     }
@@ -58,7 +61,8 @@ U8 cli_DisplayMem(GC* gc, U16 page) {
 
 U8 cli_DisplayMemX(GC* gc, U16 page) {
   fputs("\033[A", stdout);
-  for (U32 i = page*256; i < (U32)(page*256+256); i++) {
+  U32 i;
+  for (i = page*256; i < (U32)(page*256+256); i++) {
     if (!(i % 16)) {
       printf("\n%08X  ", i);
     }

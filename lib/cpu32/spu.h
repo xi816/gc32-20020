@@ -9,8 +9,9 @@ void AudioCallback(void* userdata, U8* stream, int len) {
   I16* buffer = (I16*)stream;
   int length = len / 2;
   double frequency = *((double*)userdata);
-    
-  for(int i = 0; i < length; i++) {
+  I32 i;
+
+  for(i = 0; i < length; i++) {
     buffer[i] = 32767 * sin(phase);
     phase += 2 * M_PI * frequency / AUDIO_FREQUENCY;
     if(phase > 2 * M_PI) {
