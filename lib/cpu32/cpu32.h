@@ -747,28 +747,44 @@ U8 LPa(GC* gc) {
 
 // B9           ldds
 U8 LDDS(GC* gc) {
-  gc->reg[EAX] = gc->rom[gc->reg[ESI]];
+  U32 ptr = gc->reg[ESI];
+  U32 diskid = gc->reg[gc->mem[gc->EPC+1] % 32];
+  if (diskid < DISKS && gc->rom[diskid].size > ptr) {
+    gc->reg[EAX] = gc->rom[diskid].ptr[ptr];
+  }
   gc->EPC += 2;
   return 0;
 }
 
 // BA           lddg
 U8 LDDG(GC* gc) {
-  gc->reg[EAX] = gc->rom[gc->reg[ESI]];
+  U32 ptr = gc->reg[EGI];
+  U32 diskid = gc->reg[gc->mem[gc->EPC+1] % 32];
+  if (diskid < DISKS && gc->rom[diskid].size > ptr) {
+    gc->reg[EAX] = gc->rom[diskid].ptr[ptr];
+  }
   gc->EPC += 2;
   return 0;
 }
 
 // BB           stds
 U8 STDS(GC* gc) {
-  gc->rom[gc->reg[ESI]] = gc->reg[gc->mem[gc->EPC+1]];
+  U32 ptr = gc->reg[ESI];
+  U32 diskid = gc->reg[gc->mem[gc->EPC+1] % 32];
+  if (diskid < DISKS && gc->rom[diskid].size > ptr) {
+    gc->rom[diskid].ptr[ptr] = gc->reg[EAX];
+  }
   gc->EPC += 2;
   return 0;
 }
 
 // BC           stdg
 U8 STDG(GC* gc) {
-  gc->rom[gc->reg[EGI]] = gc->reg[gc->mem[gc->EPC+1] % 32];
+  U32 ptr = gc->reg[EGI];
+  U32 diskid = gc->reg[gc->mem[gc->EPC+1] % 32];
+  if (diskid < DISKS && gc->rom[diskid].size > ptr) {
+    gc->rom[diskid].ptr[ptr] = gc->reg[EAX];
+  }
   gc->EPC += 2;
   return 0;
 }

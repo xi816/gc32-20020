@@ -185,7 +185,7 @@ memcmp:
 dmemcpy:
   dex %ecx
 .lp:
-  ldds
+  ldds %e9
   inx %esi
   sb %egi %eax
   lp .lp

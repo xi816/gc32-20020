@@ -6,8 +6,8 @@
 #define ptrlen(t) (sizeof(t)/sizeof(t[0]))
 
 int32_t main(int argc, char** argv) {
-  if (argc != 2) {
-    fprintf(stderr, "Error: expected 1 argument, got %d\n", argc-1);
+  if (argc <= 1 || argc >= 4) {
+    fprintf(stderr, "Error: expected 1/2 arguments, got %d\n", argc-1);
     exit(1);
   }
   char* color = "\033[32m";
@@ -21,8 +21,11 @@ int32_t main(int argc, char** argv) {
   printf("Formatting %s%s%s...\n", color, argv[1], rcolor);
   sprintf(fcom, "touch %s", argv[1]); system(fcom);
   sprintf(fcom, "truncate %s -s 16M", argv[1]); system(fcom);
-  sprintf(fcom, "./mkfs.govnfs %s", argv[1]); system(fcom);
-
+  if (argc == 2) {
+    sprintf(fcom, "./mkfs.govnfs %s", argv[1]); system(fcom);
+  } else {
+    sprintf(fcom, "./mkfs.govnfs %s %s", argv[1], argv[2]); system(fcom);
+  }
   // Compile GovnBIOS
   system("./kasm -o 700000 -e govnos/govnbios.asm govnos/govnbios.exp");
   system("./kasm -o 700000 govnos/govnbios.asm bios.img");
@@ -61,3 +64,4 @@ int32_t main(int argc, char** argv) {
   sprintf(fcom, "./ugovnfs -c %s govnos/test.txt test.txt txt", argv[1]); system(fcom);
   return 0;
 }
+

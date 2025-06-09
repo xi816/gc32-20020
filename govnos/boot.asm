@@ -69,7 +69,7 @@ b_pstrcmp:
 b_dmemcmp:
   dex %ecx
 .lp:
-  ldds
+  ldds %e9
   inx %esi
   lb %egi %ebx
   cmp %eax %ebx
@@ -199,7 +199,7 @@ b_scani:
 gfs2_configure:
   mov %esi $000010
   mov %egi $1F0000
-  ldds
+  ldds %e9
   sb %egi %eax
   rts
 
@@ -207,7 +207,7 @@ gfs2_read_file:
   mov %edx $0001 ; Starting search at sector 1 (sector 0 is for header data)
   mov %esi $0200 ; Precomputed starting address (sector*512)
 .lp:
-  ldds          ; Read the first byte from a sector to get its type
+  ldds %e9      ; Read the first byte from a sector to get its type
                 ;   00 -- Empty sector
                 ;   01 -- File start
                 ;   02 -- File middle/end
@@ -252,15 +252,15 @@ flcpy: ; %edx should already contain file's start sector
   mov %ecx 494 ; Copy 494 bytes (sectorSize(512) - sectorHeader(16) - sectorFooter(2))
   dex %ecx
 .lp:
-  ldds
+  ldds %e9
   inx %esi
   sb %egi %eax
   lp .lp
   ; inx %esi
-  ldds
+  ldds %e9
   mov %ebx %eax
   inx %esi
-  ldds
+  ldds %e9
   mul %eax $100
   add %eax %ebx
   cmp %eax $00
@@ -279,7 +279,7 @@ fre_sectors:
   mov %ebx 0
   mov %esi $000200
 .lp:
-  ldds
+  ldds %e9
   add %esi $200
   cmp %eax $01
   je .inc
@@ -415,7 +415,9 @@ shell:
 .jsr:
 
   mov %r12 command ; Pass a pointer to command-line arguments via %r12
+  psh %e9 ; Save disk id
   jsr $200000
+  pop %e9
   jmp .aftexec
 .bad:
   mov %esi bad_command
@@ -515,8 +517,8 @@ com_echo:    bytes "echo "
 com_exit:    bytes "exit "
 hai_world:   bytes "hai world :3$^@"
 
-env_HOST:    bytes "GovnPC 32 Ultra Edition^@"
-env_OS:      bytes "GovnOS 0.7.0 For GovnoCore32^@"
+env_HOST:    bytes "GovnPC 32 Pro Max^@"
+env_OS:      bytes "GovnOS 0.8.0^@"
 env_CPU:     reserve 24 bytes ; To be filled by the O.E.M.
 
 ; TODO: unhardcode file header TODO: remove this todo
@@ -533,3 +535,4 @@ cls_seq:     bytes "^[[H^[[2J^@"
 env_PS:      bytes "> ^@"
 
 bse:         bytes $AA $55
+

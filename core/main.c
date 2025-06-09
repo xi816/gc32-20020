@@ -46,15 +46,18 @@ U8 loadBootSector(U8* drive, U8* mem, U32 start, U32 to) {
 I32 main(I32 argc, I8** argv) {
   set_st;
   srand(time(NULL));
-  U8 driveboot;
+  U8 driveboot = 0;
   U8 climode = 0;
   U8 verbosemode = 0;
   U8 scale = 1;
   U8 argp = 1; // 256 arguments is enough for everyone
-  I8* filename = NULL;
-  I8* biosfile = NULL;
 
-  driveboot = 0;
+  // Create a virtual CPU
+  GC gc;
+  gc.pin = 0b00000000; // Reset the pin
+  InitGC(&gc);
+  Reset(&gc);
+
   if (argc == 1) {
     old_st;
     usage();
@@ -64,11 +67,46 @@ I32 main(I32 argc, I8** argv) {
   while (argp < argc) {
     // Load from the disk
     if ((!strcmp(argv[argp], "disk")) || (!strcmp(argv[argp], "-d")) || (!strcmp(argv[argp], "--disk"))) {
-      driveboot = 1;
-      argp++;
+      // find free disk
+      U8 did = 0;
+      while (gc.rom[did].size) {
+        did++;
+        if (did == DISKS) {
+          fprintf(stderr, "gc32-20020: \033[91mfatal error:\033[0m too many disks\n");
+          old_st;
+          return 1;
+        }
+      }
+
+      FILE* fl = fopen(argv[argp+1], "rb");
+      if (fl == NULL) {
+        fprintf(stderr, "gc32-20020: \033[91mfatal error:\033[0m disk `%s` not found\n", argv[argp+1]);
+        old_st;
+        return 1;
+      }
+      fseek(fl, 0, SEEK_END);
+      U32 flsize = ftell(fl);
+      U8* disk = malloc(flsize);
+      fseek(fl, 0, SEEK_SET);
+      fread(disk, 1, flsize, fl);
+      fseek(fl, 0, SEEK_SET);
+      fclose(fl);
+      gc.rom[did].size = flsize;
+      gc.rom[did].ptr = disk;
+      gc.rom[did].name = argv[argp+1];
+      // Setup the pin bit 7 to 1 (drive)
+      gc.pin |= 0b10000000;
+      argp+=2;
     }
     else if ((!strcmp(argv[argp], "bios")) || (!strcmp(argv[argp], "-b")) || (!strcmp(argv[argp], "--bios"))) {
-      biosfile = argv[argp+1];
+      FILE* fl = fopen(argv[argp+1], "rb");
+      if (fl == NULL) {
+        fprintf(stderr, "gc32-20020: \033[91mfatal error:\033[0m bios `%s` not found\n", argv[argp+1]);
+        old_st;
+        return 1;
+      }
+      fread(gc.mem + 0x00700000, 1, BIOSNOBNK*BANKSIZE, fl);
+      fclose(fl);
       argp += 2;
     }
     else if ((!strcmp(argv[argp], "verbose")) || (!strcmp(argv[argp], "-v")) || (!strcmp(argv[argp], "--verbose"))) {
@@ -89,62 +127,27 @@ I32 main(I32 argc, I8** argv) {
       argp += 2;
     }
     else {
-      filename = argv[argp];
+      if (driveboot) {
+        fprintf(stderr, "gc32-20020: can't load program when disk is attached\n");
+        old_st;
+        return 1;
+      }
+      // Load a memory dump
+      FILE* fl = fopen(argv[argp], "rb");
+      if (!fl) {
+        fprintf(stderr, "gc32-20020: \033[91mfatal error:\033[0m program `%s` not found\n", argv[argp]);
+        old_st;
+        free(gc.mem);
+        free(gc.rom);
+        return 1;
+      }
+      fread(gc.mem+0x030000, 1, MEMSIZE, fl);
+      fclose(fl);
+      // No drives for you, govnos doesnt work without govnbios
+      gc.EPC = 0x00030000;
+      // bye lmao
       break;
     }
-  }
-
-  U8 biosbuf[BIOSNOBNK * BANKSIZE];
-  biosbuf[0x000000] = 0xAA;
-  biosbuf[0x000001] = 0x55;
-  // Create a virtual CPU
-  GC gc;
-  gc.pin = 0b00000000; // Reset the pin
-  InitGC(&gc);
-  Reset(&gc);
-
-  if (!driveboot) { // Load a memory dump
-    FILE* fl = fopen(filename, "rb");
-    if (fl == NULL) {
-      fprintf(stderr, "gc32-20020: \033[91mfatal error:\033[0m file `%s` not found\n", filename);
-      old_st;
-      free(gc.mem);
-      free(gc.rom);
-      return 1;
-    }
-    fread(gc.mem+0x030000, 1, MEMSIZE, fl);
-    fclose(fl);
-    // Disk signaures for GovnFS (without them, fs drivers would not work)
-    gc.rom[0x00] = 0x60;
-    gc.rom[0x11] = '#';
-    gc.rom[0x21] = 0xF7;
-    gc.pin &= 0b01111111;
-    gc.EPC = 0x00030000;
-  }
-  else { // Load a disk
-    FILE* fl = fopen(filename, "rb");
-    if (fl == NULL) {
-      fprintf(stderr, "\033[31mError\033[0m while opening %s\n", filename);
-      old_st;
-      return 1;
-    }
-    fread(gc.rom, 1, ROMSIZE, fl);
-    fclose(fl);
-    // Load the boot sector from $C00000 into RAM ($030000)
-    loadBootSector(gc.rom, gc.mem, 0xC00000, 0x030000);
-    // Setup the pin bit 7 to 1 (drive)
-    gc.pin |= 0b10000000;
-  }
-  if (biosfile != NULL) { // BIOS provided
-    FILE* fl = fopen(biosfile, "rb");
-    if (fl == NULL) {
-      fprintf(stderr, "\033[31mError\033[0m while opening %s\n", biosfile);
-      old_st;
-      return 1;
-    }
-    fread(biosbuf, 1, BIOSNOBNK*BANKSIZE, fl);
-    fclose(fl);
-    loadBootSector(biosbuf, gc.mem, 0x000000, 0x700000);
   }
 
   // GPU
@@ -162,19 +165,17 @@ I32 main(I32 argc, I8** argv) {
   U8 exec_errno = Exec(&gc, verbosemode);
   gravno_end;
   old_st;
-  if (driveboot) { // Save the modified disk back
-    FILE* fl = fopen(filename, "wb");
-    if (fl == NULL) {
-      fprintf(stderr, "\033[31mError\033[0m while opening %s\n", filename);
-      old_st;
-      free(gc.rom);
-      free(gc.mem);
-      return 1;
+  // Saving shit? oh yeah
+  U8 did;
+  for (did = 0; did < DISKS && gc.rom[did].size; did++) {
+    FILE* fl = fopen(gc.rom[did].name, "wb");
+    if (!fl) {
+      fprintf(stderr, "\033[31mError\033[0m while saving %s\n", gc.rom[did].name);
+    } else {
+      fwrite(gc.rom[did].ptr, 1, gc.rom[did].size, fl);
+      fclose(fl);
     }
-    fwrite(gc.rom, 1, ROMSIZE, fl);
-    fclose(fl);
   }
-  free(gc.rom);
   free(gc.mem);
   return exec_errno;
 }

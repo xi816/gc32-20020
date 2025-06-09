@@ -7,6 +7,7 @@
 */
 #define ROMSIZE 16777216
 #define MEMSIZE 33554432
+#define DISKS 8
 
 // Register cluster
 struct gcrc {
@@ -14,6 +15,14 @@ struct gcrc {
   U8 y;
 };
 typedef struct gcrc gcrc_t;
+
+struct GCF32 {
+  U32 size; // If 0 then it is free
+  U8* ptr;
+  I8* name;
+};
+
+typedef struct GCF32 GCF;
 
 struct GC32 {
   // Govno Core 32's 32 addressable registers, but only 16 can be used without a swap.
@@ -23,7 +32,7 @@ struct GC32 {
 
   // Memory and ROM
   U8* mem;
-  U8* rom;
+  GCF rom[DISKS];
   U8 pin;
 
   // GPU
@@ -40,7 +49,12 @@ U0 Write32(GC* gc, U32 addr, U32 val);
 
 U0 InitGC(GC* gc) {
   gc->mem = (U8*)malloc(MEMSIZE);
-  gc->rom = (U8*)malloc(ROMSIZE);
+  U8 i;
+  for (i = 0; i < DISKS; i++) {
+    gc->rom[i].size = 0;
+    gc->rom[i].ptr = 0;
+    gc->rom[i].name = "(null)";
+  }
 }
 
 #endif

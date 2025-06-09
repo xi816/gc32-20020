@@ -24,7 +24,7 @@ dir_main:
   mov %ebx 0
   mov %esi $000200
 .loop:
-  ldds
+  ldds %e9
   cmp %eax $01
   psh %esi
   je .print

@@ -107,8 +107,8 @@ U0 GGsprite_256(GC* gc) {
 }
 
 U0 GGsprite_read_256(GC* gc) {
-  U32 to = gc->reg[0x05];   // ESI
-  U32 from = gc->reg[0x04]; // EGI
+  U32 to = gc->reg[0x05];   // EGI
+  U32 from = gc->reg[0x04]; // ESI
   U8 x,y;
   for (y = 0; y < 8; y++) {
     for (x = 0; x < 8; x++) {
