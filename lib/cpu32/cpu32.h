@@ -17,6 +17,12 @@
   State: Holy 2.0
 */
 
+/*
+ * Govno Core 32-20020 has 32 registers
+ * they are named EAX - EBP, E8 - E31,
+ * and aliased by R0 - R31.
+*/
+
 enum {
   EAX,EBX,ECX,EDX,ESI,EGI,ESP,EBP,
   E8, E9, E10,E11,E12,E13,E14,E15,
@@ -63,10 +69,10 @@ U16 ReadWord(GC* gc, U32 addr) {
   return (gc->mem[addr]) + (gc->mem[addr+1] << 8);
 }
 
-/* Read24 -- Read a 24-bit value from memory */
-U32 Read24(GC* gc, U32 addr) {
+/* Read24 -- Read a 24-bit value from memory TODO: remove this gc24 slop */
+/* U32 Read24(GC* gc, U32 addr) {
   return (gc->mem[addr]) + (gc->mem[addr+1] << 8) + (gc->mem[addr+2] << 16);
-}
+} */
 
 /* Read32 -- Read a 32-bit value from memory */
 U32 Read32(GC* gc, U32 addr) {
@@ -79,12 +85,12 @@ U0 WriteWord(GC* gc, U32 addr, U16 val) {
   gc->mem[addr+1] = (val >> 8);
 }
 
-/* Write24 -- Write a 24-bit value to memory */
-U0 Write24(GC* gc, U32 addr, U32 val) {
+/* Write24 -- Write a 24-bit value to memory TODO: remove this gc24 slop */
+/* U0 Write24(GC* gc, U32 addr, U32 val) {
   gc->mem[addr] = (val % 256);
   gc->mem[addr+1] = ((val >> 8) % 256);
   gc->mem[addr+2] = ((val >> 16) % 256);
-}
+} */
 
 /* Write32 -- Write a 32-bit value to memory */
 U0 Write32(GC* gc, U32 addr, U32 val) {
@@ -138,6 +144,8 @@ U8 UNK(GC* gc) {
   The imm8 will be in every instruction
   It can be used as a register or an 8-bit immediate (e.g. INT8)
   So even HLT for example will be $0000
+  25-06-12: wait HLT actually uses the second byte as an exit code,
+  so this is a bad example
 */
 // 00           hlt
 U8 HLT(GC* gc) {

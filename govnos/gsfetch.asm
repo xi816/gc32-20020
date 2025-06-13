@@ -37,6 +37,11 @@ govnos_gsfetch:
   jsr b_puti
   mov %esi gsfc_005
   int $81
+  div %e8 1024
+  mov %eax %e8
+  jsr b_puti
+  mov %esi gsfc_010
+  int $81
 
   ; Disk space
   mov %esi gsfc_008
@@ -89,15 +94,16 @@ govnos_gsfetch:
 
   jmp shell.aftexec
 
-gsfc_000:    bytes "             ^[[97mgsfetch$^[[0m             ---------$^@"
-gsfc_001:    bytes "             ^[[97mHost: ^[[0m^@"
-gsfc_002:    bytes "$             ^[[97mOS: ^[[0m^@"
-gsfc_003:    bytes "$             ^[[97mCPU: ^[[0m^@"
-gsfc_004:    bytes "             ^[[97mMemory: ^[[0m^@"
-gsfc_005:    bytes " B/32 MiB$^@"
+gsfc_000:    bytes "             ^[[1;33mgsfetch$^[[0m             ---------$^@"
+gsfc_001:    bytes "             ^[[1;33mHost: ^[[0m^@"
+gsfc_002:    bytes "$             ^[[1;33mOS: ^[[0m^@"
+gsfc_003:    bytes "$             ^[[1;33mCPU: ^[[0m^@"
+gsfc_004:    bytes "             ^[[1;33mMemory: ^[[0m^@"
+gsfc_005:    bytes " B/^@"
+gsfc_010:    bytes " KiB$^@"
 gsfc_006:    bytes "             ^@"
 gsfc_007:    bytes "^[[0m$^@"
-gsfc_008:    bytes "             ^[[97mDisk space used: ^[[0m^@"
+gsfc_008:    bytes "             ^[[1;33mDisk space used: ^[[0m^@"
 gsfc_009:    bytes " B/16 MiB$$^@"
 gsfc_logo:   bytes "^[[10A^[[33m  .     . .$"
              bytes            "     A     .$"
