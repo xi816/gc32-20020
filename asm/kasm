@@ -672,7 +672,7 @@ def main(argc: int, argv: list) -> int:
   if (argc == 3):
     progname = argv[1];
     outname = argv[2];
-    ofname = progname.split("/")[-1];
+  ofname = progname.split("/")[-1];
 
   system(f"cpp --no-line-commands {progname} /tmp/{ofname}.i");
   with open("/tmp/"+ofname+".i", "r") as fl:

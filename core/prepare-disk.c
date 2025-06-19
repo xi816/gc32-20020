@@ -63,6 +63,9 @@ int32_t main(int argc, char** argv) {
   sprintf(fcom, "./ugovnfs -c %s govnos/cat.bin cat com", argv[1]); system(fcom);
   sprintf(fcom, "./ugovnfs -c %s govnos/gtutor.bin gtutor com", argv[1]); system(fcom);
   sprintf(fcom, "./ugovnfs -c %s govnos/test.txt test.txt txt", argv[1]); system(fcom);
+
+  // Дима
+  sprintf(fcom, "./ugovnfs -c %s govnos/dima.txt nagiev.txt txt", argv[1]); system(fcom);
   return 0;
 }
 
