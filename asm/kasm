@@ -2,6 +2,7 @@
 
 import sys;
 import time;
+from os import system;
 
 T_INS   = 0x00;
 T_INT   = 0x01;
@@ -671,10 +672,13 @@ def main(argc: int, argv: list) -> int:
   if (argc == 3):
     progname = argv[1];
     outname = argv[2];
+    ofname = progname.split("/")[-1];
 
-  with open(progname, "r") as fl:
+  system(f"cpp --no-line-commands {progname} /tmp/{ofname}.i");
+  with open("/tmp/"+ofname+".i", "r") as fl:
     src = fl.read();
   src = RemEmpty(src)+"\0";
+  system(f"rm /tmp/{ofname}.i");
   tokens, exitcode = Lex(src, progname);
   if (type(tokens[1]) is int):
     print("Fatal error. Can't compile");
@@ -694,3 +698,4 @@ def main(argc: int, argv: list) -> int:
   return 0;
 
 sys.exit(main(len(sys.argv), sys.argv));
+
