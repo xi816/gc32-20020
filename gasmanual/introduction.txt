@@ -1,0 +1,62 @@
+This section will introduce you to GovnoCore 32 architecture.
+Specifically this manual is about the Govno Core 32-20020 Gen 1 Tiger CPU,
+the newest GovnoCore CPU by the time of 25-06-22
+
+It will cover it's registers, memory layout and binary structure.
+
+GovnoCore 32-20020 instructions follow 1 of 2 formats
+  <opc:8> <imm:8> | 2 bytes
+  or
+  <opc:8> <imm:8> <imm:32> | 4 bytes
+The opcode is always 8 bits, storing a value from 0 to 255.
+The 8-bit immediate often stores the destination register, or
+a register cluster.
+A register cluster is an 8-bit value that stores 2 4-bit
+register addresses, which can store addresses from eax to e15.
+Specifically to access registers e16-e31 using the register
+cluster, an rswp:$F0 instruction was added. The rswp:$F0
+instruction swaps the first 16 registers with the second 16
+registers. Specifically for ESP and EBP not breaking with
+rswp:$F0 instruction, the e22-e23 registers are also initialized
+to default stack pointer value: $00FEFFFF.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

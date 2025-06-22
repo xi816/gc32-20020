@@ -1,0 +1,53 @@
+The Govno Core 32-20020 has 34 registers in total.
+These include 32 general purpose registers, which can be accessed by these names:
+  EAX, EBX, ECX, EDX, ESI, EDI, ESP, EBP, E8 - E31
+and aliased by
+  E0 - E31 or R0 - R31,
+Processor Status Flags, or PS,
+and Program Counter, or EPC.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

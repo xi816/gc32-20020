@@ -138,7 +138,6 @@ I32 main(I32 argc, I8** argv) {
         fprintf(stderr, "gc32-20020: \033[91mfatal error:\033[0m program `%s` not found\n", argv[argp]);
         old_st;
         free(gc.mem);
-        free(gc.rom);
         return 1;
       }
       fread(gc.mem+0x030000, 1, MEMSIZE, fl);
