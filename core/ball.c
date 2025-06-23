@@ -8,18 +8,26 @@
 int32_t main(int argc, char** argv) {
   char* color = "\033[32m";
   char* rcolor = "\033[0m";
-  if (strcmp(getenv("TERM"), "xterm-256color")) {
+
+  char com[128];
+  char* term = getenv("TERM");
+  char* cc = getenv("CC");
+  char* cflags = getenv("CFLAGS");
+  if (!cc)     cc = "gcc";
+  if (!cflags) cflags = "-Wall --std=gnu89";
+
+  if (strcmp(term, "xterm-256color") && strcmp(term, "xterm")) {
     color = "\0";
     rcolor = "\0";
   }
   char* targets[]         = {"gc32-20020", "gboot", "mkfs.govnfs", "ugovnfs", "prepare-disk"};
   char* install_targets[] = {"gc32-20020", "gboot", "mkfs.govnfs", "ugovnfs", "prepare-disk", "kasm"};
   char* build_commands[] = {
-    "gcc -Wall --std=gnu89 core/main.c -Ilib/ -lm -lSDL2 -o gc32-20020",
-    "gcc -Wall --std=gnu89 core/gboot/main.c -o gboot",
-    "gcc -Wall --std=gnu89 core/mkfs.govnfs/main.c -o mkfs.govnfs",
-    "gcc -Wall --std=gnu89 core/ugovnfs/main.c -Ilib/ -lm -o ugovnfs",
-    "gcc -Wall --std=gnu89 core/prepare-disk.c -o prepare-disk"
+    "%s %s core/main.c -Ilib/ -lm -lSDL2 -o gc32-20020",
+    "%s %s core/gboot/main.c -o gboot",
+    "%s %s core/mkfs.govnfs/main.c -o mkfs.govnfs",
+    "%s %s core/ugovnfs/main.c -Ilib/ -lm -o ugovnfs",
+    "%s %s core/prepare-disk.c -o prepare-disk"
   };
   char* install_commands[] = {
     "install gc32-20020 /usr/local/bin/",
@@ -43,7 +51,8 @@ int32_t main(int argc, char** argv) {
     for (uint16_t i = 0; i < ptrlen(targets); i++) {
       printf("building %s%s%s\n", color, targets[i], rcolor);
       fflush(stdout);
-      system(build_commands[i]);
+      sprintf(com, build_commands[i], cc, cflags);
+      system(com);
     }
     return 0;
   }
