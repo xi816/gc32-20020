@@ -2,7 +2,11 @@
 
 import sys;
 import time;
-from os import system;
+from os import system, getenv;
+
+RED   = "\033[91m";
+GREEN = "\033[92m";
+CLEAR = "\033[0m";
 
 T_INS   = 0x00;
 T_INT   = 0x01;
@@ -93,6 +97,16 @@ def OffsetLabs(labs: dict, offset: int):
     labs[i] += offset;
   return labs;
 
+def getFilePos(s: str, pos: int):
+  la = 1; ca = 1; r = 0;
+  while (r < pos):
+    ca += 1;
+    if (s[r] == "\n"):
+      la += 1;
+      ca = 1;
+    r += 1;
+  return la,ca;
+
 def usage():
   print("kasm -- Kakashka Assembler 1.0 (but who cares about the version anyways)");
   print("Usage: kasm [OPTIONS] <file.asm> <file.bin>");
@@ -157,7 +171,8 @@ def Lex(prog: str, filename: str):
       if (buf in KEYR):
         toks.append((T_REG, KEYR[buf]));
       else:
-        print(f"kasm: {filename}:{linenum}:1: Unknown register {buf}");
+        l,c = getFilePos(prog, pos);
+        print(f"%s:%d:%d: {RED}error{CLEAR}: Bad register name `%s`" % (filename, l, c-2-len(buf), buf));
         exit(1);
       buf = "";
       pos -= 1;
@@ -289,10 +304,8 @@ def Lex(prog: str, filename: str):
           toks.append((T_ID, buf));
       buf = "";
     else:
-      print(f"\033[31mUnknown\033[0m character {hex(ord(prog[pos]))[2:].upper():0>2}");
-      print(f"\033[33m  Note:\033[0m at position {hex(pos)[2:]:0>4}h");
-      print(f"\033[33m  Note:\033[0m at position {pos}");
-      print(f"\033[33m  Note:\033[0m `{prog[pos]}`");
+      l,c = getFilePos(prog, pos);
+      print(f"%s:%d:%d: {RED}error{CLEAR}: bad character `%c`" % (filename, l, c, prog[pos]));
       exit(1);
   return [], 1;
 
@@ -303,8 +316,8 @@ def FetchLabels(prog: list, disk: bool):
       labs[i[1]] = i[2]+(0x090000*disk);
   return labs;
 
-def RemEmpty(prog: str):
-  return "\n".join([i for i in prog.split("\n") if i]);
+def RemComments(prog: str):
+  return "\n".join([i for i in prog.split("\n") if not i.startswith("# ")]);
 
 ParseInst = lambda toks, b, pos, pc: \
   ((ASTINS, "MOVri", (toks[pos+1][1], toks[pos+2][1]), pos + 3, pc + 6) if ((b == "mov") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_INT)) else
@@ -441,29 +454,29 @@ def Parse(toks: list, filename: str, expm: int) -> list:
             ast[-1][2].append(i);
           pc += len(toks[pos][1]);
         else:
-          print(f"kasm: error: the bytes are too cooked. {HUMAN_TOKS[toks[pos][0]]}");
+          print(f"{filename}:в ебенях: {RED}error{CLEAR}: token of type `{HUMAN_TOKS[toks[pos][0]]}` is placed in bytes definition.\nif this was a mistake, end the declaration by a newline character");
           exit(1);
         pos += 1;
       pos += 1;
     elif (toks[pos][0] == T_MCR): # Parse macros
       if (toks[pos][1] == "reserve"):
         if (toks[pos+1][0] != T_INT):
-          print(f"\033[31mError\033[0m: expected number after reserve.");
-          print(f"\033[96mHint\033[0m: syntax for `reserve` is: reserve 10 bytes");
+          print(f"{filename}:в ебенях: {RED}error{CLEAR}: expected number after reserve.");
+          print(f"syntax for `reserve` is: reserve 10 bytes");
           exit(1);
         if (toks[pos+2][0] == T_BYTE):
           restype = 1; # bytes
         else:
-          print(f"\033[31mError\033[0m: expected bytes after reserve #n.");
-          print(f"\033[96mHint\033[0m: syntax for `reserve` is: reserve 10 bytes");
+          print(f"{filename}:в ебенях: {RED}error{CLEAR}: expected bytes after reserve #n.");
+          print(f"syntax for `reserve` is: reserve 10 bytes");
           exit(1);
         ast.append([ASTRES, "__B_reserve", toks[pos+1][1]*restype, pc]);
         pc += toks[pos+1][1]*restype;
         pos += 3;
       elif (toks[pos][1] == "extern"):
         if (toks[pos+1][0] != T_STR):
-          print(f"\033[31mError\033[0m: expected filename after extern.");
-          print(f"\033[96mHint\033[0m: syntax for `extern` is: extern \"filename\"");
+          print(f"{filename}:в ебенях: {RED}error{CLEAR}: expected filename after extern.");
+          print(f"syntax for `extern` is: extern \"filename\"");
           exit(1);
         with open(toks[pos+1][1], "rb") as extern_file:
           extern_source = extern_file.read()
@@ -473,11 +486,11 @@ def Parse(toks: list, filename: str, expm: int) -> list:
     elif (toks[pos][0] == T_EOL):
       pos += 1;
     else:
-      print("kasm: \033[91munknown token: %s %s\033[0m" % (HUMAN_TOKS[toks[pos][0]], toks[pos][1]));
+      print("{filename}:в ебенях: {RED}error{CLEAR}: unknown token: %s %s" % (HUMAN_TOKS[toks[pos][0]], toks[pos][1]));
       exit(1);
   ast.append([ASTEOF, 0, 0, pc]);
   if (expm):
-    print(f"\033[92m{filename}: exported {len(labels)} symbols\033[0m");
+    print(f"{GREEN}{filename}: exported {len(labels)} symbols{CLEAR}");
   else:
     print(f"{filename}: compiled {pc} bytes");
   return ast, labels;
@@ -631,6 +644,12 @@ def IKasm() -> int:
   exit(0);
 
 def main(argc: int, argv: list) -> int:
+  global RED, CLEAR;
+  if (getenv("TERM") not in ["xterm", "xterm-256color"]):
+    RED   = "";
+    GREEN = "";
+    CLEAR = "";
+
   diskmode = False;
   exportmode = False;
   if (argc == 1):
@@ -674,10 +693,10 @@ def main(argc: int, argv: list) -> int:
     outname = argv[2];
   ofname = progname.split("/")[-1];
 
-  system(f"cpp --no-line-commands {progname} /tmp/{ofname}.i");
+  system(f"cpp {progname} /tmp/{ofname}.i");
   with open("/tmp/"+ofname+".i", "r") as fl:
     src = fl.read();
-  src = RemEmpty(src)+"\0";
+  src = RemComments(src)+"\0";
   system(f"rm /tmp/{ofname}.i");
   tokens, exitcode = Lex(src, progname);
   if (type(tokens[1]) is int):
