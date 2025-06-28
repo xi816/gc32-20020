@@ -241,7 +241,7 @@ gfs2_read_file:
   mov %eax $01
   rts
 
-flcpy: ; %edx should already contain file's start sector
+flcpy:
   ; mov %egi $200000 ; should be configured by the jsrer
 .read:
   cmp %edx $0000

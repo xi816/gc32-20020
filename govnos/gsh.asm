@@ -68,7 +68,7 @@ gshHelp:
 gshExit:
   rts
 gshBadComm:
-  psh '"' ; "
+  psh '"'
   int $02
   mov %esi gshCommand
   int $81
