@@ -41,7 +41,7 @@ U16 GC_GOVNODATE() {
   return ((localtm->tm_year-70)<<9) + (localtm->tm_mon<<5) + (localtm->tm_mday-1);
 }
 
-U16 GC_GOVNOTIME() {
+U32 GC_GOVNOTIME() {
   time_t rawtm;
   struct tm* localtm;
 
