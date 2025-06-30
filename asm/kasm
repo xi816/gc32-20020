@@ -115,6 +115,7 @@ def usage():
   print("  -o [VAL]     Offset labels to VAL");
   print("  -i <file>    Import labels from a file");
   print("  -e           Export labels to the output file");
+  print("  -cpp         Enable C preprocessor");
   print("  -I           Start interactive mode");
 
 # Lexer:
@@ -631,7 +632,9 @@ def IKasm() -> int:
     if (not cd):
       print(end="\033[0m");
       continue;
-    if (cd == "exit"): exit(0);
+    if (cd == "exit"):
+      print(end="\033[0m");
+      exit(0);
     print(end="\033[97m");
     tokens, exitcode = Lex(cd, "input");
     ast, labs = Parse(tokens, "input", False);
@@ -652,6 +655,7 @@ def main(argc: int, argv: list) -> int:
 
   diskmode = False;
   exportmode = False;
+  cppmode = False;
   if (argc == 1):
     print("No arguments given");
     usage();
@@ -676,6 +680,9 @@ def main(argc: int, argv: list) -> int:
       case "-d":
         diskmode = True;
         argp += 1;
+      case "-cpp":
+        cppmode = True;
+        argp += 1;
       case "-I":
         IKasm();
         argp += 1;
@@ -693,11 +700,24 @@ def main(argc: int, argv: list) -> int:
     outname = argv[2];
   ofname = progname.split("/")[-1];
 
-  system(f"cpp {progname} /tmp/{ofname}.i");
-  with open("/tmp/"+ofname+".i", "r") as fl:
-    src = fl.read();
-  src = RemComments(src)+"\0";
-  system(f"rm /tmp/{ofname}.i");
+  if (cppmode):
+    system(f"cpp {progname} /tmp/{ofname}.i");
+    try:
+      with open("/tmp/"+ofname+".i", "r") as fl:
+        src = fl.read();
+    except:
+      print(f"kasm: {progname}: file not found");
+      exit(1);
+    src = RemComments(src)+"\0";
+    system(f"rm /tmp/{ofname}.i");
+  else:
+    try:
+      with open(progname, "r") as fl:
+        src = fl.read()+"\0";
+    except:
+      print(f"kasm: {progname}: file not found");
+      exit(1);
+
   tokens, exitcode = Lex(src, progname);
   if (type(tokens[1]) is int):
     print("Fatal error. Can't compile");
