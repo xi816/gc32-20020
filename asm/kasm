@@ -2,6 +2,8 @@
 
 import sys;
 import time;
+from time import sleep;
+from copy import deepcopy;
 from os import system, getenv;
 
 RED   = "\033[91m";
@@ -62,6 +64,11 @@ KEYR   = {
   "r16": 0x10, "r17": 0x11, "r18": 0x12, "r19": 0x13, "r20": 0x14, "r21": 0x15, "r22": 0x16, "r23": 0x17,
   "r24": 0x18, "r25": 0x19, "r26": 0x1A, "r27": 0x1B, "r28": 0x1C, "r29": 0x1D, "r30": 0x1E, "r31": 0x1F
 };
+
+# Little endian
+AsWord = lambda a: ((a & 0xFF), (a >> 8));
+As24   = lambda a: ((a & 0xFF), ((a >> 8) & 0xFF), (a >> 16));
+As32   = lambda a: ((a & 0xFF), ((a >> 8) & 0xFF), ((a >> 16) & 0xFF), (a >> 24));
 
 def PrintTokens(toks: list):
   for i,j in enumerate(toks):
@@ -450,6 +457,9 @@ def Parse(toks: list, filename: str, expm: int) -> list:
         if (toks[pos][0] == T_INT):
           ast[-1][2].append(toks[pos][1]);
           pc += 1;
+        elif (toks[pos][0] == T_ID):
+          ast[-1][2].append(("l",toks[pos][1]));
+          pc += 4;
         elif (toks[pos][0] == T_STR):
           for i in toks[pos][1]:
             ast[-1][2].append(i);
@@ -487,7 +497,7 @@ def Parse(toks: list, filename: str, expm: int) -> list:
     elif (toks[pos][0] == T_EOL):
       pos += 1;
     else:
-      print("{filename}:в ебенях: {RED}error{CLEAR}: unknown token: %s %s" % (HUMAN_TOKS[toks[pos][0]], toks[pos][1]));
+      print(f"{filename}:в ебенях: {RED}error{CLEAR}: unknown token: %s %s" % (HUMAN_TOKS[toks[pos][0]], toks[pos][1]));
       exit(1);
   ast.append([ASTEOF, 0, 0, pc]);
   if (expm):
@@ -495,11 +505,6 @@ def Parse(toks: list, filename: str, expm: int) -> list:
   else:
     print(f"{filename}: compiled {pc} bytes");
   return ast, labels;
-
-# Little endian
-AsWord = lambda a: ((a & 0xFF), (a >> 8));
-As24   = lambda a: ((a & 0xFF), ((a >> 8) & 0xFF), (a >> 16));
-As32   = lambda a: ((a & 0xFF), ((a >> 8) & 0xFF), ((a >> 16) & 0xFF), (a >> 24));
 
 CompileInst = lambda prog, b, labels, pos: \
   (((0xC0, b[2][0], *As32(b[2][1])), pos+1)         if (b[1] == "MOVri") else
@@ -615,6 +620,10 @@ def CompileGC32(prog: list, labs: dict):
       if (pos == 0x1_00_0000): exit(1);
       code.extend(compbytes);
     elif (prog[pos][0] == ASTBYTES):
+      p = deepcopy(prog[pos][2]);
+      for i,j in enumerate(p):
+        if (type(j) is tuple):
+          prog[pos][2][i:i+1] = As32(labs[prog[pos][2][i][1]]);
       code.extend(prog[pos][2]);
       pos += 1;
     elif (prog[pos][0] == ASTRES):
