@@ -347,6 +347,13 @@ shell:
   je govnos_date
 
   mov %esi command
+  mov %egi com_time
+  mov %ecx ' '
+  jsr b_pstrcmp
+  cmp %eax $00
+  je govnos_time
+
+  mov %esi command
   mov %egi com_echo
   mov %ecx ' '
   jsr b_pstrcmp
@@ -470,6 +477,25 @@ govnos_date:
   psh '$'
   int 2
   jmp shell.aftexec
+govnos_time:
+  int 5
+  mov %ebx %edx
+  mov %eax %ebx
+  div %eax 3600
+  jsr b_puti
+  psh ':' int 2
+  mov %eax %ebx
+  div %eax 3600
+  mov %eax %edx
+  div %eax 60
+  jsr b_puti
+  psh ':' int 2
+  mov %eax %ebx
+  div %eax 60
+  mov %eax %edx
+  jsr b_puti
+  psh '$' int 2
+  jmp shell.aftexec
 govnos_cls:
   mov %esi cls_seq
   int $81
@@ -503,6 +529,7 @@ help_msg:    bytes "^[[38;5;69m+-------------------------------------------+$"
              bytes "^[[38;5;69m|  ^[[92mcls         ^[[93mClear the screen^[[38;5;69m             |$"
              bytes "^[[38;5;69m|  ^[[92mdir         ^[[93mShow files on the disk^[[38;5;69m       |$"
              bytes "^[[38;5;69m|  ^[[92mdate        ^[[93mShow current date (%Y-%m-%d)^[[38;5;69m |$"
+             bytes "^[[38;5;69m|  ^[[92mtime        ^[[93mShow current time (%H:%M:%S)^[[38;5;69m |$"
              bytes "^[[38;5;69m|  ^[[92mecho        ^[[93mEcho text back to output^[[38;5;69m     |$"
              bytes "^[[38;5;69m|  ^[[92mexit        ^[[93mExit from the shell^[[38;5;69m          |$"
              bytes "^[[38;5;69m|  ^[[92mgsfetch     ^[[93mShow system info^[[38;5;69m             |$"
@@ -512,6 +539,7 @@ help_msg:    bytes "^[[38;5;69m+-------------------------------------------+$"
 com_hi:      bytes "hi "
 com_cls:     bytes "cls "
 com_date:    bytes "date "
+com_time:    bytes "time "
 com_help:    bytes "help "
 com_echo:    bytes "echo "
 com_exit:    bytes "exit "

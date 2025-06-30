@@ -1,8 +1,8 @@
 // Basic processor functions
 struct govnodate {
-  short year;
-  char  month;
-  char  day;
+  char year;
+  char month;
+  char day;
 };
 typedef struct govnodate govnodate;
 
@@ -23,8 +23,8 @@ govnodate govnodate_convert(unsigned short date) {
 
 govnotime govnotime_convert(unsigned short date) {
   return (govnotime){
-    .hour   = (date / 1800) % 24,
-    .minute = (date / 60) % 60,
+    .hour   = (date / 3600) % 24,
+    .minute = (date % 3600) % 60,
     .second = date % 60
   };
 }
@@ -47,7 +47,7 @@ U16 GC_GOVNOTIME() {
 
   time(&rawtm);
   localtm = localtime(&rawtm);
-  return (localtm->tm_hour*1800) + (localtm->tm_min*30) + (localtm->tm_sec / 2);
+  return (localtm->tm_hour*3600) + (localtm->tm_min*60) + (localtm->tm_sec);
 }
 
 U0 fatal(char* msg) {
