@@ -26,7 +26,7 @@ int32_t main(int argc, char** argv) {
     "%s %s core/main.c -Ilib/ -lm -lSDL2 -o gc32-20020",
     "%s %s core/gboot/main.c -o gboot",
     "%s %s core/mkfs.govnfs/main.c -o mkfs.govnfs",
-    "%s %s core/ugovnfs/main.c -Ilib/ -lm -o ugovnfs",
+    "%s %s core/ugovnfs/main2.c -Ilib/ -lm -o ugovnfs",
     "%s %s core/prepare-disk.c -o prepare-disk"
   };
   char* install_commands[] = {

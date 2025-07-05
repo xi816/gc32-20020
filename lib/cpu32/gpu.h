@@ -1,5 +1,6 @@
 // GPU identificator: GovnGraphics 69-4932
 #include <cpu32/gpuh.h>
+#include <cpu32/gpufont.h>
 
 ggrgb rgbv[] = {
   (ggrgb){.r = 0x00, .g = 0x00, .b = 0x00},
@@ -89,9 +90,28 @@ U0 GGpage_RGB555LE(GC* gc) {
   SDL_RenderPresent(gc->renderer);
 }
 
-U0 (*GGPAGE[2])(GC*) = {&GGpage_CGA16, &GGpage_RGB555LE};
+U0 GGpage_text(GC* gc) {
+  U8* b = gc->mem + 0x004F0000;
+  U8* sb = gc->mem + 0x00400000;
+  U8 x, y, ch, col, fg, bg, r, c;
+  U8* fontdata;
+  for (y = 0; y < 60; y++) {
+    for (x = 0; x < 80; x++) {
+      ch = b[(y * 80 + x) * 2];
+      col = b[(y * 80 + x) * 2 + 1];
+      fg = col & 0x0F;
+      bg = (col >> 4) & 0x0F;
+      fontdata = &CHARSET[ch * 8];
+      for (r = 0; r < 8; r++) for (c = 0; c < 8; c++)
+        sb[(y * 8 + r) * 640 + (x * 8 + c)] = ((fontdata[r] >> (7 - c)) & 1) ? fg : bg;
+    }
+  }
+  GGpage_RGB555LE(gc);
+}
+
+U0 (*GGPAGE[3])(GC*) = {&GGpage_CGA16, &GGpage_RGB555LE, &GGpage_text};
 U0 GGpage(GC* gc) {
-  GGPAGE[gc->mem[0x49FF00]%2](gc);
+  GGPAGE[gc->mem[0x49FF00]%3](gc);
 }
 
 // PPU functions
