@@ -23,7 +23,7 @@ int32_t main(int argc, char** argv) {
   char* targets[]         = {"gc32-20020", "gboot", "mkfs.govnfs", "ugovnfs", "prepare-disk"};
   char* install_targets[] = {"gc32-20020", "gboot", "mkfs.govnfs", "ugovnfs", "prepare-disk", "kasm"};
   char* build_commands[] = {
-    "%s %s core/main.c -Ilib/ -lm -lSDL2 -o gc32-20020",
+    "%s %s core/main.c -Ilib/ -lm -lSDL3 -o gc32-20020",
     "%s %s core/gboot/main.c -o gboot",
     "%s %s core/mkfs.govnfs/main.c -o mkfs.govnfs",
     "%s %s core/ugovnfs/main2.c -Ilib/ -lm -o ugovnfs",

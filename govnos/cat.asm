@@ -38,19 +38,19 @@ cat_main:
   jmp .failed
 .output:
   mov %esi $280000
-  int $81
+  int $91
   rts
 .failed:
   mov %esi cat_msg01
-  int $81
+  int $91
   mov %esi %r13
-  int $81
+  int $91
   mov %esi cat_msg02
-  int $81
+  int $91
   rts
 .no_args:
   mov %esi cat_msg00
-  int $81
+  int $91
   rts
 
 cat_msg00: bytes "No tag given. Try `cat test.txt` to see the test.txt file's contents.$^@"

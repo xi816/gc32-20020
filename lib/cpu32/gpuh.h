@@ -1,30 +1,21 @@
-#ifndef GPU16H_H
-#define GPU16H_H 1
+#ifndef GPU32H_H
+#define GPU32H_H 1
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 #define WINW 640
 #define WINH 480
 #define VGASIZE WINW*WINH // 307,200
 
-#define gravno_start \
-  SDL_Init(SDL_INIT_EVERYTHING); \
-  SDL_Window* WIN = SDL_CreateWindow( \
-      "Gravno Display", 500, 100, WINW * scale, WINH * scale, SDL_WINDOW_SHOWN); \
-  SDL_Renderer* renderer = SDL_CreateRenderer( \
-      WIN, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);\
-  SDL_RenderSetScale(renderer, scale, scale);
-
-#define gravno_end \
-  SDL_DestroyRenderer(renderer); \
-  SDL_DestroyWindow(WIN); \
-  SDL_Quit();
-
-struct gc_gg16 {
+struct gc_gg32 {
   U8 status; // besplatno
   U8 scale; // platno
+  SDL_Window* win;
+  SDL_Renderer* rndr;
+  SDL_Surface* surf;
+  SDL_Palette* pal;
 };
-typedef struct gc_gg16 gc_gg16;
+typedef struct gc_gg32 gc_gg32;
 
 struct ggrgb {
   U8 r;

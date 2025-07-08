@@ -1,4 +1,45 @@
-jmp main
+vidinit:
+  mov %esi $49FF00
+  mov %eax $02
+  sb %esi %eax
+  mov %esi $4A0000
+  mov %egi palitro
+  mov %ecx 15
+.pal:
+  lw %egi %eax
+  sw %esi %eax
+  lp .pal
+  jmp debug
+palitro: bytes $00 $00 $00 $54 $A0 $02 $40 $55 $15 $00 $15 $54 $B5 $02 $B5 $56 $4A $29 $4A $7D $EA $2B $EA $7F $5F $29 $5F $7D $FF $2B $FF $7F
+debug:
+  mov %egi $480000
+  mov %edx 0 ; Shift flag
+.l1:
+  lb %egi %eax
+  cmp %eax $E1
+  jne .l1
+debug:
+  mov %esi $4F0000
+  mov %egi $480000
+  mov %ebx $10
+  mov %ecx 10
+  mov %edx $0F
+.l1:
+  lb %egi %eax
+  sb %esi %eax
+  sb %esi %edx
+  lp .l1
+
+  int $11
+  mov %edx 16
+  int $22
+  jmp debug
+
+vputs:
+  lb %esi %eax
+  cmp %eax $00
+  re
+  psh vputs
 vputc:
   cmp %eax '$' ; newline
   je .newline
@@ -11,13 +52,6 @@ vputc:
   mul %e14 160
   add %e14 224
   rts
-
-vputs:
-  lb %esi %eax
-  cmp %eax $00
-  re
-  jsr vputc
-  jmp vputs
 
 main:
   mov %esi $49FF00
@@ -36,6 +70,13 @@ main:
   jsr vputs
   int $11
 .loop:
+  int $9
+  cmp %edx 0
+  jne .recv
+  mov %edx 8
+  int $22
+  jmp .loop
+.recv:
   int $1
   pop %eax
   cmp %eax '$'
@@ -58,5 +99,5 @@ main:
 .term:
   hlt
 
-hw: bytes "$> ^@"
+hw: bytes "$^$ ^@"
 

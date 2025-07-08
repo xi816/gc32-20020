@@ -42,52 +42,69 @@ enum ggcolors {
   EWHITE   = 15,
 };
 
-U0 GGinit(gc_gg16* gg, SDL_Renderer* r, U8 scale) {
-  gg->status = 0b00000000;
+U0 GGinit(gc_gg32* gg, U8 scale) {
+  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+  SDL_SetAppMetadata("GovnoCore 32-20020", "32-20020", "io.github.xi816.gc32-20020");
   gg->scale = scale;
-  SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
-  SDL_RenderClear(r);
+  gg->win = SDL_CreateWindow("Gravno Display Pro", WINW * scale, WINH * scale, SDL_WINDOW_HIGH_PIXEL_DENSITY);
+  gg->surf = SDL_CreateSurface(WINW, WINH, SDL_PIXELFORMAT_INDEX8);
+  gg->pal = SDL_CreatePalette(256);
+  SDL_SetSurfacePalette(gg->surf, gg->pal);
+  gg->status = 0b00000000;
+  SDL_HideCursor();
+  SDL_UpdateWindowSurface(gg->win);
+}
+
+U0 GGstop(gc_gg32* gg) {
+  SDL_DestroyPalette(gg->pal);
+  SDL_DestroySurface(gg->surf);
+  SDL_DestroyRenderer(gg->rndr);
+  SDL_DestroyWindow(gg->win);
+  SDL_Quit();
+}
+
+U0 GGupload(GC* gc) {
+  gc->gg.surf->pixels = gc->mem + 0x400000;
+  SDL_BlitSurfaceScaled(gc->gg.surf, 0, SDL_GetWindowSurface(gc->gg.win), 0, SDL_SCALEMODE_NEAREST);
+  SDL_UpdateWindowSurface(gc->gg.win);
 }
 
 U0 GGflush(GC* gc) {
   U8 byte = gc->mem[0x450000];
-  U16 palitro = (gc->mem[0x4A0000+2*byte]) + (gc->mem[0x4A0001+2*byte] << 8);
+  //U16 palitro = (gc->mem[0x4A0000+2*byte]) + (gc->mem[0x4A0001+2*byte] << 8);
   byte = gc->mem[0x450000];
-  SDL_SetRenderDrawColor(gc->renderer,
-    ((palitro&0b0111110000000000)>>10)*8, // R
-    ((palitro&0b0000001111100000)>>5)*8,  // G
-    ((palitro&0b0000000000011111))*8,     // B
-    0xFF);
+  // SDL_SetRenderDrawColor(gc->renderer,
+  //   ((palitro&0b0111110000000000)>>10)*8, // R
+  //   ((palitro&0b0000001111100000)>>5)*8,  // G
+  //   ((palitro&0b0000000000011111))*8,     // B
+  //   0xFF);
   memset(gc->mem+0x400000, byte, VGASIZE);
   // SDL_RenderPresent(gc->renderer);
 }
 
 U0 GGpage_CGA16(GC* gc) {
-  U8 byte;
-  U32 i;
-  for (i = 0; i < VGASIZE; i++) {
-    byte = gc->mem[0x00400000+i];
-    SDL_SetRenderDrawColor(gc->renderer, rgbv[byte%16].r, rgbv[byte%16].g, rgbv[byte%16].b, 0xFF);
-    SDL_RenderDrawPoint(gc->renderer, i%WINW, i/WINW);
+  U16 i;
+  for (i = 0; i < 256; i++) {
+    gc->gg.pal->colors[i].r = rgbv[i%16].r;
+    gc->gg.pal->colors[i].g = rgbv[i%16].g;
+    gc->gg.pal->colors[i].b = rgbv[i%16].b;
+    gc->gg.pal->colors[i].a = 0xFF;
   }
-  SDL_RenderPresent(gc->renderer);
+  GGupload(gc);
 }
 
 U0 GGpage_RGB555LE(GC* gc) {
-  U8 byte;
+  U16 i;
   U16 palitro;
-  U32 i;
-  for (i = 0; i < VGASIZE; i++) {
-    byte = gc->mem[0x400000+i];
-    palitro = (gc->mem[0x4A0000+2*byte]) + (gc->mem[0x4A0001+2*byte] << 8);
-    SDL_SetRenderDrawColor(gc->renderer,
-      ((palitro&0b0111110000000000)>>10)*8, // R
-      ((palitro&0b0000001111100000)>>5)*8,  // G
-      ((palitro&0b0000000000011111))*8,     // B
-      0xFF);
-    SDL_RenderDrawPoint(gc->renderer, i%WINW, i/WINW);
+  for (i = 0; i < 256; i++) {
+    palitro = (gc->mem[0x4A0000+2*i]) + (gc->mem[0x4A0001+2*i] << 8);
+    gc->gg.pal->colors[i].r = ((palitro&0b0111110000000000)>>10)*8;
+    gc->gg.pal->colors[i].g = ((palitro&0b0000001111100000)>>5)*8;
+    gc->gg.pal->colors[i].b = ((palitro&0b0000000000011111))*8;
+    gc->gg.pal->colors[i].a = 0xFF;
   }
-  SDL_RenderPresent(gc->renderer);
+  GGupload(gc);
+
 }
 
 U0 GGpage_text(GC* gc) {

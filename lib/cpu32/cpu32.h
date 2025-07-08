@@ -343,10 +343,10 @@ U8 INT(GC* gc) {
     return 0;
   }
   U8 i = gc->mem[gc->EPC+1];
-  INTERRUPTS[i](gc, i);
+  i = INTERRUPTS[i](gc, i);
 
   intend: gc->EPC += 2;
-  return 0;
+  return i;
 }
 
 // 42           dex @imm32
@@ -1006,8 +1006,7 @@ U8 INT_WAI(GC* gc, U8 I) { // 22 wait
 }
 
 U8 INT_BEP(GC* gc, U8 I) { // 23 beep
-  double freq = (double)StackPop(gc);
-  PlayBeep(freq);
+  GAsnd(&(gc->ga), gc->reg[ESI], gc->reg[EDX], gc->reg[EAX]);
   return 0;
 }
 
@@ -1077,10 +1076,10 @@ U0 Reset(GC* gc) {
   for (i = 0; i < 32; i++)
     gc->reg[i] = 0x00000000;
   gc->reg[ESP] = 0x00FEFFFF;
-  gc->reg[EBP] = 0x00FEFFFF;
+  gc->reg[EBP] = gc->reg[ESP];
   // Adjust ESP+/EBP+ extra registers
-  gc->reg[R22] = 0x00FEFFFF;
-  gc->reg[R23] = 0x00FEFFFF;
+  gc->reg[R22] = gc->reg[ESP];
+  gc->reg[R23] = gc->reg[ESP];
 
   gc->PS = 0b01000000;
 }
@@ -1122,7 +1121,6 @@ U0 RegDump(GC* gc) {
 U8 Exec(GC* gc, U8 verbosemode) {
   U8 exc = 0;
   U32 insts = 0;
-  SDL_ShowCursor(SDL_DISABLE);
   execloop:
     // printf("%08X\n", gc->EPC);
     exc = (INSTS[gc->mem[gc->EPC]])(gc);

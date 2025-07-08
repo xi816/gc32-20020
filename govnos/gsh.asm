@@ -5,10 +5,10 @@
   jmp gshMain
 gshMain:
   mov %esi gshWelcome
-  int $81
+  int $91
 gshShell:
   mov %esi gshPS1
-  int $81
+  int $91
 
   mov %esi scans_len
   mov %eax $0000
@@ -59,21 +59,20 @@ gshShell:
   jmp gshAftexec
 gshHi:
   mov %esi gshHw
-  int $81
+  int $91
   jmp gshAftexec
 gshHelp:
   mov %esi gshHelpMsg
-  int $81
+  int $91
   jmp gshAftexec
 gshExit:
   rts
 gshBadComm:
-  psh '"'
-  int $02
+  mov %eax '"' int $92
   mov %esi gshCommand
-  int $81
+  int $91
   mov %esi gshBadCommMsg
-  int $81
+  int $91
   jmp gshAftexec
 
 gshAftexec:

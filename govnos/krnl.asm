@@ -9,8 +9,10 @@ write:
   dex %ecx
 .lp:
   lb %esi %eax
-  psh %eax
-  int $02
+  cmp %eax 0
+  je .z
+  int $92
+.z:
   lp .lp
   pop %eax
   rts
@@ -76,8 +78,10 @@ strcmp:
 scani:
   mov %eax $00
 .lp:
-  int $01
-  pop %ebx
+  psh %eax
+  int $93
+  mov %ebx %eax
+  pop %eax
 
   cmp %ebx $0A ; Check for Enter
   re
@@ -91,8 +95,12 @@ scani:
   jg .lp
 
   mul %eax 10
-  psh %ebx
-  int $02
+
+  psh %eax
+  mov %eax %ebx
+  int $92
+  pop %eax
+
   sub %ebx 48
   add %eax %ebx
   jmp .lp
@@ -103,7 +111,7 @@ scani:
 .back_strict:
   mov %esi krnl_bksp_seq
   psh %eax
-  int $81
+  int $91
   pop %eax
   div %eax 10
   jmp .lp
@@ -112,14 +120,12 @@ scani:
 ; Arguments:
 ;   si -- buffer address
 scans:
-  int 1
-  pop %eax
+  int $93
   cmp %eax $7F
   je .back
   cmp %eax $1B
   je scans
-  psh %eax
-  int 2
+  int $92
   cmp %eax $0A
   je .end
   sb %esi %eax
@@ -133,7 +139,7 @@ scans:
 .back_strict:
   psh %esi
   mov %esi krnl_bksp_seq
-  int $81
+  int $91
   pop %esi
   dex %esi
   dex @scans_len
@@ -193,11 +199,8 @@ dmemcpy:
 
 krnl_panic:
   mov %esi krnl_panic00
-  int $81
-  int 1
-  pop %edx
-  mov %esi krnl_show_cursor
-  int $81
+  int $91
+  int $93
   hlt
 
 ; kmain executes when the kernel loads
@@ -206,7 +209,7 @@ kmain:
 
 ; Constants/data
 krnl_bksp_seq: bytes "^H ^H^@"
-krnl_panic00:  bytes "^[[44m^[[H^[[2J^[[?25l$"
+krnl_panic00:  bytes "^\bE^\z$"
                bytes "A problem has been detected and GovnOS has been down to prevent damage$"
                bytes "to your computer.$$"
                bytes "UNKNOWN_DETECTED_ERROR$$"
@@ -218,6 +221,6 @@ krnl_panic00:  bytes "^[[44m^[[H^[[2J^[[?25l$"
                bytes "for any Govno Core / GovnOS updates you might need.$$"
                bytes "If problems continue, disable or remove any newly installed hardware$"
                bytes "or software. Do not change BIOS if you don't know how to do it properly.$$"
-               bytes "Press any key to shut down"
+               bytes "Press any key to shut down$"
                bytes "^@"
 krnl_show_cursor: bytes "^[[0m^[[H^[[2J^[[?25h^@"

@@ -1,5 +1,6 @@
 // The CLI for using the emulator
 #include <cpu32/gpuh.h>
+#include <cpu32/spuh.h>
 #include <cpu32/cpu32h.h>
 #define GC24_VERSION "0.0.1"
 #define EXEC_START 1

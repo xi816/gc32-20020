@@ -4,14 +4,14 @@ reboot: jmp boot
 b_scans:
   mov %e8 $00
 .lp:
-  int 1
-  pop %eax
+  int $93
+  ; pop %eax
   cmp %eax $7F
   je .back
   ; cmp %eax $1B
   ; je b_scans.lp
-  psh %eax
-  int 2
+  ; psh %eax
+  int $92
   cmp %eax $0A
   je .end
   sb %esi %eax
@@ -25,7 +25,7 @@ b_scans:
 .back_strict:
   psh %esi
   mov %esi bs_seq
-  int $81
+  int $91
   pop %esi
   sb %esi %e8
   sub %esi 2
@@ -126,8 +126,10 @@ b_write:
   dex %ecx
 .lp:
   lb %esi %eax
-  psh %eax
-  int $02
+  cmp %eax 0
+  je .llp
+  int $92
+.llp:
   lp .lp
   pop %eax
   rts
@@ -160,8 +162,10 @@ b_puti_buf: reserve 8 bytes
 b_scani:
   mov %eax $00
 .lp:
-  int $01
-  pop %ebx
+  psh %eax
+  int $93
+  mov %ebx %eax
+  pop %eax
 
   cmp %ebx $0A ; Check for Enter
   re
@@ -175,8 +179,10 @@ b_scani:
   jg .lp
 
   mul %eax 10
-  psh %ebx
-  int $02
+  psh %eax
+  mov %eax %ebx
+  int $92
+  pop %eax
   sub %ebx 48
   add %eax %ebx
   jmp .lp
@@ -187,7 +193,7 @@ b_scani:
 .back_strict:
   mov %esi bs_seq
   psh %eax
-  int $81
+  int $91
   pop %eax
   div %eax 10
   jmp .lp
@@ -297,15 +303,15 @@ boot:
   ; Load the kernel libraries
   jsr gfs2_configure
   mov %esi welcome_msg
-  int $81
+  int $91
   mov %esi krnl_load_msg
-  int $81
+  int $91
   mov %esi emp_sec_msg00
-  int $81
+  int $91
   jsr fre_sectors
   jsr b_puti
   mov %esi emp_sec_msg01
-  int $81
+  int $91
 
   mov %ebx krnl_file_header
   mov %egi $A00000
@@ -316,7 +322,7 @@ boot:
 shell:
 .prompt:
   mov %esi env_PS
-  int $81
+  int $91
 
   mov %esi clen
   mov %eax $0000
@@ -428,16 +434,16 @@ shell:
   jmp .aftexec
 .bad:
   mov %esi bad_command
-  int $81
+  int $91
   mov %esi command
-  int $81
-  psh '$'
-  int $02
+  int $91
+  mov %eax '$'
+  int $92
 .aftexec:
   jmp .prompt
 govnos_hi:
   mov %esi hai_world
-  int $81
+  int $91
   jmp shell.aftexec
 govnos_date:
   int 3
@@ -447,8 +453,7 @@ govnos_date:
   psh %edx
   jsr b_puti
   pop %edx
-  psh '-'
-  int 2
+  mov %eax '-' int $92
   mov %eax %edx
   sar %eax 5
   mov %ebx $000F
@@ -456,26 +461,26 @@ govnos_date:
   inx %eax
   cmp %eax 10
   jg .p0
-  psh '0'
-  int 2
+  psh %eax
+  mov %eax '0' int $92
+  pop %eax
 .p0:
   psh %edx
   jsr b_puti
   pop %edx
-  psh '-'
-  int 2
+  mov %eax '-' int $92
   mov %eax %edx
   mov %ebx $001F
   and %eax %ebx
   inx %eax
   cmp %eax 10
   jg .p1
-  psh '0'
-  int 2
+  psh %eax
+  mov %eax '0' int $92
+  pop %eax
 .p1:
   jsr b_puti
-  psh '$'
-  int 2
+  mov %eax '$' int $92
   jmp shell.aftexec
 govnos_time:
   int 5
@@ -483,26 +488,26 @@ govnos_time:
   mov %eax %ebx
   div %eax 3600
   jsr b_puti
-  psh ':' int 2
+  mov %eax ':' int $92
   mov %eax %ebx
   div %eax 3600
   mov %eax %edx
   div %eax 60
   jsr b_puti
-  psh ':' int 2
+  mov %eax ':' int $92
   mov %eax %ebx
   div %eax 60
   mov %eax %edx
   jsr b_puti
-  psh '$' int 2
+  mov %eax '$' int $92
   jmp shell.aftexec
 govnos_cls:
   mov %esi cls_seq
-  int $81
+  int $91
   jmp shell.aftexec
 govnos_help:
   mov %esi help_msg
-  int $81
+  int $91
   jmp shell.aftexec
 govnos_exit:
   hlt
@@ -511,30 +516,29 @@ govnos_echo:
   mov %esi command
   mov %ecx ' '
   jsr b_strtok
-  int $81
-  psh $0A
-  int 2
+  int $91
+  mov %eax '$' int $92
   jmp shell.aftexec
 
-welcome_msg:   bytes "Welcome to ^[[33mGovnOS^[[0m$^@"
-krnl_load_msg: bytes "Loading ^[[38;5;136m:/krnl.bin/com^[[0m...$^@"
-emp_sec_msg00: bytes "$Disk sectors used: ^[[93m^@"
-emp_sec_msg01: bytes "^[[0m$$^@"
+welcome_msg:   bytes "Welcome to ^\fDGovnOS^\r$^@"
+krnl_load_msg: bytes "Loading ^\fL:/krnl.bin/com^\r...$^@"
+emp_sec_msg00: bytes "$Disk sectors used: ^\fK^@"
+emp_sec_msg01: bytes "^\r$$^@"
 bad_command:   bytes "Bad command: ^@"
 
-help_msg:    bytes "^[[38;5;69m+-------------------------------------------+$"
-             bytes "^[[38;5;69m|^[[96mGovnOS help page 1/1^[[38;5;69m                       |$"
-             bytes "^[[38;5;69m|  ^[[92mcat         ^[[93mOutput file contents^[[38;5;69m         |$"
-             bytes "^[[38;5;69m|  ^[[92mcalc        ^[[93mCalculator^[[38;5;69m                   |$"
-             bytes "^[[38;5;69m|  ^[[92mcls         ^[[93mClear the screen^[[38;5;69m             |$"
-             bytes "^[[38;5;69m|  ^[[92mdir         ^[[93mShow files on the disk^[[38;5;69m       |$"
-             bytes "^[[38;5;69m|  ^[[92mdate        ^[[93mShow current date (%Y-%m-%d)^[[38;5;69m |$"
-             bytes "^[[38;5;69m|  ^[[92mtime        ^[[93mShow current time (%H:%M:%S)^[[38;5;69m |$"
-             bytes "^[[38;5;69m|  ^[[92mecho        ^[[93mEcho text back to output^[[38;5;69m     |$"
-             bytes "^[[38;5;69m|  ^[[92mexit        ^[[93mExit from the shell^[[38;5;69m          |$"
-             bytes "^[[38;5;69m|  ^[[92mgsfetch     ^[[93mShow system info^[[38;5;69m             |$"
-             bytes "^[[38;5;69m|  ^[[92mhelp        ^[[93mShow help^[[38;5;69m                    |$"
-             bytes "^[[38;5;69m+-------------------------------------------+^[[0m$^@"
+help_msg:    bytes "^\fM+-------------------------------------------+$"
+             bytes "^\fM|^\fCGovnOS help page 1/1^\fM                       |$"
+             bytes "^\fM|  ^\fKcat         ^\fLOutput file contents^\fM         |$"
+             bytes "^\fM|  ^\fKcalc        ^\fLCalculator^\fM                   |$"
+             bytes "^\fM|  ^\fKcls         ^\fLClear the screen^\fM             |$"
+             bytes "^\fM|  ^\fKdir         ^\fLShow files on the disk^\fM       |$"
+             bytes "^\fM|  ^\fKdate        ^\fLShow current date (%Y-%m-%d)^\fM |$"
+             bytes "^\fM|  ^\fKtime        ^\fLShow current time (%H:%M:%S)^\fM |$"
+             bytes "^\fM|  ^\fKecho        ^\fLEcho text back to output^\fM     |$"
+             bytes "^\fM|  ^\fKexit        ^\fLExit from the shell^\fM          |$"
+             bytes "^\fM|  ^\fKgsfetch     ^\fLShow system info^\fM             |$"
+             bytes "^\fM|  ^\fKhelp        ^\fLShow help^\fM                    |$"
+             bytes "^\fM+-------------------------------------------+^\r$^@"
 
 com_hi:      bytes "hi "
 com_cls:     bytes "cls "
@@ -559,7 +563,7 @@ command:     reserve 64 bytes
 clen:        reserve 2 bytes
 
 bs_seq:      bytes "^H ^H^@"
-cls_seq:     bytes "^[[H^[[2J^@"
+cls_seq:     bytes "^\z^@"
 env_PS:      bytes "> ^@"
 
 bse:         bytes $AA $55

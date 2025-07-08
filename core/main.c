@@ -145,14 +145,16 @@ I32 main(I32 argc, I8** argv) {
       // No drives for you, govnos doesnt work without govnbios
       gc.EPC = 0x00030000;
       // bye lmao
+      if (argc > argp + 1) {
+        fprintf(stderr, "gc32-20020: \033[91mwarning:\033[0m some arguments not parsed\n");
+      }
       break;
     }
   }
 
   // GPU
-  gravno_start;
-  gc.renderer = renderer;
-  GGinit(&(gc.gg), renderer, scale);
+  GGinit(&(gc.gg), scale);
+  GAinit(&(gc.ga));
 
   int runcode = 0xFF;
   tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
@@ -162,7 +164,7 @@ I32 main(I32 argc, I8** argv) {
   }
   tcsetattr(STDIN_FILENO, TCSANOW, &newt);
   U8 exec_errno = Exec(&gc, verbosemode);
-  gravno_end;
+  GGstop(&(gc.gg));
   old_st;
   // Saving shit? oh yeah
   U8 did;

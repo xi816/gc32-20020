@@ -1,9 +1,8 @@
 gtutor_main:
   mov %esi gtutor_msg00
-  int $81
+  int $91
 
-  int $01
-  pop %edx
+  int $93
 
   rts
 

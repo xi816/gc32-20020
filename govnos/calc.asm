@@ -1,13 +1,13 @@
 calc_main:
   ; First number
   mov %esi calc_00
-  int $81
+  int $91
   jsr scani
 
   ; Second number
   mov %esi calc_01
   psh %eax
-  int $81
+  int $91
   jsr scani
   mov %ebx %eax
   pop %eax
@@ -15,14 +15,15 @@ calc_main:
   ; Operation
   mov %esi calc_02
   psh %eax
-  int $81
+  int $91
+  int $93
+  int $92
+  mov %ecx %eax
   pop %eax
-  int $01
-  pop %ecx
-  psh %ecx
-  int $02
-  psh '$'
-  int 2
+
+  psh %eax
+  mov %eax '$' int $92
+  pop %eax
 
   cmp %ecx '+'
   je .add
@@ -36,35 +37,31 @@ calc_main:
 .add:
   add %eax %ebx
   jsr puti
-  psh '$'
-  int $02
+  mov %eax '$' int $92
   rts
 .sub:
   sub %eax %ebx
   jsr puti
-  psh '$'
-  int $02
+  mov %eax '$' int $92
   rts
 .mul:
   mul %eax %ebx
   jsr puti
-  psh '$'
-  int $02
+  mov %eax '$' int $92
   rts
 .div:
   cmp %ebx $00
   je .div_panic
   div %eax %ebx
   jsr puti
-  psh '$'
-  int $02
+  mov %eax '$' int $92
   rts
 .div_panic:
   mov %eax $000000
   jmp krnl_panic
 .unk:
   mov %esi calc_03
-  int $81
+  int $91
   rts
 
 calc_00:     bytes "Enter first number: ^@"

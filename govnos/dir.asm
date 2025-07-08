@@ -11,15 +11,15 @@ dir_main:
   mov %esi $1F0000 ; Drive letter
   lb %esi %ebx
   mov %esi dir_msg00
-  int $81
-  psh %ebx
-  int 2
+  int $91
+  mov %eax %ebx
+  int $92
   mov %esi dir_msg01
-  int $81
-  psh %ebx
-  int 2
+  int $91
+  mov %eax %ebx
+  int $92
   mov %esi dir_msg02
-  int $81
+  int $91
 
   mov %ebx 0
   mov %esi $000200
@@ -50,10 +50,9 @@ dir_main:
   cmp %eax 1
   je .notyourtime
 
-  psh ' '
-  int 2
-  psh ' '
-  int 2
+  mov %eax ' '
+  int $92
+  int $92
   mov %esi header
   mov %ebx '^@'
   mov %edx ' '
@@ -63,21 +62,20 @@ dir_main:
   mov %ecx 15
   jsr write
   pop %esi
-  psh '$'
-  int 2
+  mov %eax '$'
+  int $92
   pop %esi
   add %esi $200
   jmp .loop
 .notyourtime:
   pop %esi
-  ; psh '$'
-  ; int 2
+  ; mov %eax '$' int $92
   pop %esi
   add %esi $200
   jmp .loop
 .no_args:
   mov %esi dir_msg03
-  int $81
+  int $91
   rts
 
 dir_msg00: bytes "Volume in drive ^@"

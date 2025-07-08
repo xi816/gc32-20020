@@ -1,9 +1,13 @@
 #define HID_ADDR 0x480000
+// struct { U16 x; U16 y; U8 sy; U8 keys[MAX_KEYS];}
 // todo: cpu32h?
 U0 WriteWord(GC* gc, U32 addr, U16 val);
 U0 move_mouse(GC* gc, U16 x, U16 y) {
     WriteWord(gc, HID_ADDR, x);
     WriteWord(gc, HID_ADDR + 2, y);
+}
+U0 scroll_mouse(GC* gc, I8 y) {
+    gc->mem[HID_ADDR + 4] = y;
 }
 U0 mouse_btn(GC* gc, U8 id, U8 val) {
   U8 flag = gc->mem[HID_ADDR + 4];
@@ -37,21 +41,25 @@ U0 kbd_btn(GC* gc, U16 id, U8 val) {
 }
 U8 hid_events(GC* gc) {
   SDL_Event event;
+  scroll_mouse(gc, 0);
   while (SDL_PollEvent(&event)) {
     switch(event.type) {
-      case SDL_QUIT:
+      case SDL_EVENT_QUIT:
         return 1;
-      case SDL_MOUSEMOTION:
+      case SDL_EVENT_MOUSE_MOTION:
         move_mouse(gc, event.motion.x / gc->gg.scale, event.motion.y / gc->gg.scale);
         break;
-      case SDL_MOUSEBUTTONDOWN:
-      case SDL_MOUSEBUTTONUP:
-        mouse_btn(gc, event.button.button, event.type == SDL_MOUSEBUTTONDOWN);
+      case SDL_EVENT_MOUSE_BUTTON_DOWN:
+      case SDL_EVENT_MOUSE_BUTTON_UP:
+        mouse_btn(gc, event.button.button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
         break;
-      case SDL_KEYDOWN:
-      case SDL_KEYUP:
+      case SDL_EVENT_MOUSE_WHEEL:
+        scroll_mouse(gc, event.wheel.integer_y);
+        break;
+      case SDL_EVENT_KEY_DOWN:
+      case SDL_EVENT_KEY_UP:
         if (!event.key.repeat)
-          kbd_btn(gc, event.key.keysym.scancode, event.type == SDL_KEYDOWN);
+          kbd_btn(gc, event.key.scancode, event.type == SDL_EVENT_KEY_DOWN);
         break;
     }
   }

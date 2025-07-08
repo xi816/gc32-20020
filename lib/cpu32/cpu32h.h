@@ -36,8 +36,10 @@ struct GC32 {
   U8 pin;
 
   // GPU
-  gc_gg16 gg;
-  SDL_Renderer* renderer;
+  gc_gg32 gg;
+
+  // SPU
+  gc_ga32 ga;
 };
 typedef struct GC32 GC;
 void PlayBeep(double frequency);
