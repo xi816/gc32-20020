@@ -1128,8 +1128,7 @@ U8 Exec(GC* gc, U8 verbosemode) {
     // printf("EPC:%08X\n", gc->EPC);
     // printf("ESP:%08X\n", gc->reg[ESP]);
     if (exc != 0) {
-      U32 s = ceil(log10(insts))-1;
-      printf("gc32-20020: executed %.3lfE%d instructions\n", insts/pow(10, s), s);
+      printf("gc32-20020: executed %.3E instructions\n", (double)insts);
       printf(verbosemode ? "last executed instruction: \033[32m$%02X\033[0m\n" : "", gc->mem[gc->EPC]);
       printf(verbosemode ? "last executed address: \033[33m#%08X\033[0m\n" : "", gc->EPC);
       return gc_errno;

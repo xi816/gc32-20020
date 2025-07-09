@@ -6,6 +6,6 @@ gtutor_main:
 
   rts
 
-gtutor_msg00: bytes "^[[92mWelcome to GovnOS tutorial! Press Return to start^[[0m$^[[91m  will be available tomorrow (05.0B.E9)^[[0m$^@"
+gtutor_msg00: bytes "^\fCWelcome to GovnOS tutorial! Press Return to start^\fH$^\fB  will be available tomorrow (05.0B.E9)^\fH$^@"
 gtutor_msg01: bytes "^[[H^[[2JThe gsfetch command shows your computer characteristics$> gsfetch$$^@"
 

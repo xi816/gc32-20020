@@ -98,6 +98,14 @@ b_strnul:
   mov %eax $00
   rts
 
+b_dstrcpy:
+  ldds %e9
+  inx %esi
+  cmp %eax $00
+  re
+  sb %egi %eax
+  jmp b_dstrcpy
+
 b_strcpy:
   lb %esi %eax
   cmp %eax $00
@@ -134,9 +142,21 @@ b_write:
   pop %eax
   rts
 
+b_hputc:
+  mov %egi b_hputc_sym
+  div %eax 16
+  mov %e10 %eax
+  mov %e11 %edx
+  add %e10 b_hputc_sym
+  add %e11 b_hputc_sym
+  lb %e10 %eax int $92
+  lb %e11 %eax int $92
+  rts
+b_hputc_sym: bytes "0123456789ABCDEF"
+
 b_puti:
   mov %egi b_puti_buf
-  add %egi 7
+  add %egi 10
 .lp:
   div %eax 10 ; Divide and get the remainder into %edx
   add %edx 48 ; Convert to ASCII
@@ -145,19 +165,19 @@ b_puti:
   cmp %eax $00
   jne .lp
   mov %esi b_puti_buf
-  mov %ecx 8
+  mov %ecx 11
   jsr b_write
   jsr b_puti_clr
   rts
 b_puti_clr:
   mov %esi b_puti_buf
   mov %eax $00
-  mov %ecx 7 ; 8
+  mov %ecx 10 ; 11
 .lp:
   sb %esi %eax
   lp .lp
   rts
-b_puti_buf: reserve 8 bytes
+b_puti_buf: reserve 11 bytes
 
 b_scani:
   mov %eax $00
@@ -202,11 +222,16 @@ b_scani:
 ; to a config field at bank $1F
 ; Entries:
 ;   $1F0000 -- Drive letter
+;   $1F0010 -- Filesystem name
 gfs2_configure:
   mov %esi $000010
   mov %egi $1F0000
   ldds %e9
   sb %egi %eax
+
+  mov %esi $000001
+  mov %egi $1F0010
+  jsr b_dstrcpy
   rts
 
 gfs2_read_file:
@@ -360,6 +385,27 @@ shell:
   je govnos_time
 
   mov %esi command
+  mov %egi com_rand
+  mov %ecx ' '
+  jsr b_pstrcmp
+  cmp %eax $00
+  je govnos_rand
+
+  mov %esi command
+  mov %egi com_disi
+  mov %ecx ' '
+  jsr b_pstrcmp
+  cmp %eax $00
+  je govnos_diski
+
+  mov %esi command
+  mov %egi com_prom
+  mov %ecx ' '
+  jsr b_pstrcmp
+  cmp %eax $00
+  je govnos_prompt
+
+  mov %esi command
   mov %egi com_echo
   mov %ecx ' '
   jsr b_pstrcmp
@@ -482,6 +528,31 @@ govnos_date:
   jsr b_puti
   mov %eax '$' int $92
   jmp shell.aftexec
+govnos_rand:
+  int $21
+  mov %eax %edx
+  jsr b_puti
+  mov %eax '$' int $92
+  jsr shell.aftexec
+govnos_diski:
+  mov %esi diski_001
+  int $91
+  mov %esi $1F0000
+  lb %esi %eax int $92
+  mov %eax '/' int $92
+  mov %eax '$' int $92
+
+  mov %esi diski_002
+  int $91
+  mov %esi $1F0010
+  int $91
+  mov %eax '$' int $92
+
+  mov %esi diski_003
+  int $91
+  mov %eax '$' int $92
+
+  jsr shell.aftexec
 govnos_time:
   int 5
   mov %ebx %edx
@@ -519,11 +590,21 @@ govnos_echo:
   int $91
   mov %eax '$' int $92
   jmp shell.aftexec
+govnos_prompt:
+  mov %esi prompt_001
+  int $91
+  mov %esi env_PS
+  jsr b_scans
+  jmp shell.aftexec
 
 welcome_msg:   bytes "Welcome to ^\fDGovnOS^\r$^@"
 krnl_load_msg: bytes "Loading ^\fL:/krnl.bin/com^\r...$^@"
 emp_sec_msg00: bytes "$Disk sectors used: ^\fK^@"
 emp_sec_msg01: bytes "^\r$$^@"
+diski_001:     bytes "^\fKDisk info^\r$  Disk letter: ^@"
+diski_002:     bytes "  Filesystem: ^@"
+diski_003:     bytes "  Disk size: ^\fBTODO^\r MiB ^@"
+prompt_001:    bytes "Enter PS prompt: ^@"
 bad_command:   bytes "Bad command: ^@"
 
 help_msg:    bytes "^\fM+-------------------------------------------+$"
@@ -531,6 +612,7 @@ help_msg:    bytes "^\fM+-------------------------------------------+$"
              bytes "^\fM|  ^\fKcat         ^\fLOutput file contents^\fM         |$"
              bytes "^\fM|  ^\fKcalc        ^\fLCalculator^\fM                   |$"
              bytes "^\fM|  ^\fKcls         ^\fLClear the screen^\fM             |$"
+             bytes "^\fM|  ^\fKdisk-i      ^\fLGet disk info^\fM                |$"
              bytes "^\fM|  ^\fKdir         ^\fLShow files on the disk^\fM       |$"
              bytes "^\fM|  ^\fKdate        ^\fLShow current date (%Y-%m-%d)^\fM |$"
              bytes "^\fM|  ^\fKtime        ^\fLShow current time (%H:%M:%S)^\fM |$"
@@ -538,6 +620,9 @@ help_msg:    bytes "^\fM+-------------------------------------------+$"
              bytes "^\fM|  ^\fKexit        ^\fLExit from the shell^\fM          |$"
              bytes "^\fM|  ^\fKgsfetch     ^\fLShow system info^\fM             |$"
              bytes "^\fM|  ^\fKhelp        ^\fLShow help^\fM                    |$"
+             bytes "^\fM|  ^\fKmemv        ^\fLMemory viewer^\fM                |$"
+             bytes "^\fM|  ^\fKprompt      ^\fLChange prompt^\fM                |$"
+             bytes "^\fM|  ^\fKrand        ^\fLGet random 32-bit number^\fM     |$"
              bytes "^\fM+-------------------------------------------+^\r$^@"
 
 com_hi:      bytes "hi "
@@ -547,10 +632,13 @@ com_time:    bytes "time "
 com_help:    bytes "help "
 com_echo:    bytes "echo "
 com_exit:    bytes "exit "
+com_rand:    bytes "rand "
+com_disi:    bytes "disk-i "
+com_prom:    bytes "prompt "
 hai_world:   bytes "hai world :3$^@"
 
 env_HOST:    bytes "GovnPC 32 Pro Max^@"
-env_OS:      bytes "GovnOS 0.8.0^@"
+env_OS:      bytes "GovnOS 0.9.0^@"
 env_CPU:     reserve 24 bytes ; To be filled by the O.E.M.
 
 ; TODO: unhardcode file header TODO: remove this todo
@@ -564,7 +652,7 @@ clen:        reserve 2 bytes
 
 bs_seq:      bytes "^H ^H^@"
 cls_seq:     bytes "^\z^@"
-env_PS:      bytes "> ^@"
+env_PS:      bytes "> ^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@"
 
 bse:         bytes $AA $55
 

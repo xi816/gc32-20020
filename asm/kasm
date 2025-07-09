@@ -341,6 +341,7 @@ ParseInst = lambda toks, b, pos, pc: \
    (ASTINS, "RSWP",  0, pos + 1, pc + 2)                                if (b == "rswp") else
    (ASTINS, "HLT",   0, pos + 1, pc + 2)                                if (b == "hlt") else
    (ASTINS, "ADDri", (toks[pos+1][1], toks[pos+2][1]), pos + 3, pc + 6) if ((b == "add") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_INT)) else
+   (ASTINS, "ADDrl", (toks[pos+1][1], toks[pos+2][1]), pos + 3, pc + 6) if ((b == "add") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_ID)) else
    (ASTINS, "ADDrc", (toks[pos+1][1], toks[pos+2][1]), pos + 3, pc + 2) if ((b == "add") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_REG)) else
    (ASTINS, "ADDrb", (toks[pos+1][1], toks[pos+2][1]), pos + 3, pc + 6) if ((b == "add") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_ADDRB)) else
    (ASTINS, "ADDrw", (toks[pos+1][1], toks[pos+2][1]), pos + 3, pc + 6) if ((b == "add") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_ADDRW)) else
@@ -524,6 +525,7 @@ CompileInst = lambda prog, b, labels, pos: \
    ((0x0E,0x00), pos+1)                             if (b[1] == "LOADF") else
    ((0x0F,0x00), pos+1)                             if (b[1] == "LOADA") else
    ((0x48, b[2][0], *As32(b[2][1])), pos+1)         if (b[1] == "ADDri") else
+   ((0x48, b[2][0], *As32(labels[b[2][1]])), pos+1) if (b[1] == "ADDrl") else
    ((0x47, (b[2][0]<<4)+b[2][1]), pos+1)            if (b[1] == "ADDrc") else
    ((0x38, (b[2][0]<<4)+b[2][1]), pos+1)            if (b[1] == "ANDrc") else
    ((0x39, (b[2][0]<<4)+b[2][1]), pos+1)            if (b[1] == "ORArc") else

@@ -17,6 +17,21 @@ write:
   pop %eax
   rts
 
+; hputc -- put a hex character 00-FF
+; Arguments:
+;   ax -- number
+hputc:
+  mov %egi hputc_sym
+  div %eax 16
+  mov %e10 %eax
+  mov %e11 %edx
+  add %e10 hputc_sym
+  add %e11 hputc_sym
+  lb %e10 %eax int $92
+  lb %e11 %eax int $92
+  rts
+hputc_sym: bytes "0123456789ABCDEF"
+
 ; puti -- Write a 24-bit unsigned number to the screen
 ; Arguments:
 ;   ax -- number
