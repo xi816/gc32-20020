@@ -342,8 +342,14 @@ boot:
   mov %egi $A00000
   jsr gfs2_read_file
   cmp %eax $00
-  jne shell
+  jne no_krnl
   jsr $A00000
+  jmp shell
+no_krnl:
+  mov %esi nokrnl_err
+  int $91
+  int $93
+  hlt
 shell:
 .prompt:
   mov %esi env_PS
@@ -397,6 +403,13 @@ shell:
   jsr b_pstrcmp
   cmp %eax $00
   je govnos_diski
+
+  mov %esi command
+  mov %egi com_rebo
+  mov %ecx ' '
+  jsr b_pstrcmp
+  cmp %eax $00
+  je govnos_reboot
 
   mov %esi command
   mov %egi com_prom
@@ -553,6 +566,12 @@ govnos_diski:
   mov %eax '$' int $92
 
   jsr shell.aftexec
+govnos_reboot:
+  ; Clear the screen
+  mov %esi cls_seq
+  int $91
+  ; Basically jumps back to BIOS
+  jmp $00700000
 govnos_time:
   int 5
   mov %ebx %edx
@@ -615,14 +634,15 @@ help_msg:    bytes "^\fM+-------------------------------------------+$"
              bytes "^\fM|  ^\fKdisk-i      ^\fLGet disk info^\fM                |$"
              bytes "^\fM|  ^\fKdir         ^\fLShow files on the disk^\fM       |$"
              bytes "^\fM|  ^\fKdate        ^\fLShow current date (%Y-%m-%d)^\fM |$"
-             bytes "^\fM|  ^\fKtime        ^\fLShow current time (%H:%M:%S)^\fM |$"
              bytes "^\fM|  ^\fKecho        ^\fLEcho text back to output^\fM     |$"
              bytes "^\fM|  ^\fKexit        ^\fLExit from the shell^\fM          |$"
+             bytes "^\fM|  ^\fKfsec        ^\fLFormat disk sector^\fM           |$"
              bytes "^\fM|  ^\fKgsfetch     ^\fLShow system info^\fM             |$"
              bytes "^\fM|  ^\fKhelp        ^\fLShow help^\fM                    |$"
              bytes "^\fM|  ^\fKmemv        ^\fLMemory viewer^\fM                |$"
              bytes "^\fM|  ^\fKprompt      ^\fLChange prompt^\fM                |$"
              bytes "^\fM|  ^\fKrand        ^\fLGet random 32-bit number^\fM     |$"
+             bytes "^\fM|  ^\fKtime        ^\fLShow current time (%H:%M:%S)^\fM |$"
              bytes "^\fM+-------------------------------------------+^\r$^@"
 
 com_hi:      bytes "hi "
@@ -635,10 +655,11 @@ com_exit:    bytes "exit "
 com_rand:    bytes "rand "
 com_disi:    bytes "disk-i "
 com_prom:    bytes "prompt "
+com_rebo:    bytes "reboot "
 hai_world:   bytes "hai world :3$^@"
 
 env_HOST:    bytes "GovnPC 32 Pro Max^@"
-env_OS:      bytes "GovnOS 0.9.0^@"
+env_OS:      bytes "GovnOS 0.9.7^@"
 env_CPU:     reserve 24 bytes ; To be filled by the O.E.M.
 
 ; TODO: unhardcode file header TODO: remove this todo
@@ -646,6 +667,9 @@ com_predefined_file_header: bytes "^Afile.bin^@^@^@^@com^@"
 krnl_file_header:           bytes "^Akrnl.bin^@^@^@^@com^@"
 file_header:                reserve 16 bytes
 file_tag:                   bytes "com^@"
+nokrnl_err:                 bytes "^\fJFATAL ERROR!!!!!^\fP$"
+                            bytes "The file krnl.bin could not be loaded from the disk$"
+                            bytes "Press any key to shutdown$"
 
 command:     reserve 64 bytes
 clen:        reserve 2 bytes

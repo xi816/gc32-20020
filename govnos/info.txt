@@ -1,4 +1,4 @@
-fDGovnOS version: 0.9.0
+fDGovnOS version: 0.9.7
 Release date: 07.09.E9 (25-07-09)
 (c) Xi816, 253*8+1
 r
