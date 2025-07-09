@@ -960,6 +960,11 @@ U8 INT_CPU(GC* gc, U8 I) { // 0A cpuid
   return 0;
 }
 
+U8 INT_DID(GC* gc, U8 I) { // 0B getdid
+  gc->reg[EDX] = gc->rom[gc->reg[EDX] % 8].size;
+  return 0;
+}
+
 U8 INT_SGF(GC* gc, U8 I) { // 0F segfault
   *((char*)0) = 42; // 0x00000 is protected + unmapped in 64-bit
   return 0;
@@ -1016,7 +1021,7 @@ U8 INT_UNK(GC* gc, U8 I) {
 }
 
 U8 (*INTERRUPTS[64])(GC*,U8) = {
-  &INT_UNK, &INT_RED, &INT_WRT, &INT_DAT, &INT_RES, &INT_TIM, &INT_UNK, &INT_UNK, &INT_UNK, &INT_CNR, &INT_CPU, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_SGF,
+  &INT_UNK, &INT_RED, &INT_WRT, &INT_DAT, &INT_RES, &INT_TIM, &INT_UNK, &INT_UNK, &INT_UNK, &INT_CNR, &INT_CPU, &INT_DID, &INT_UNK, &INT_UNK, &INT_UNK, &INT_SGF,
   &INT_UNK, &INT_GFL, &INT_GCL, &INT_GD2, &INT_GDM, &INT_GRD, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK,
   &INT_UNK, &INT_RND, &INT_WAI, &INT_BEP, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK,
   &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK,

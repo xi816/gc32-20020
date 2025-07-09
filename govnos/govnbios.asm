@@ -506,31 +506,36 @@ GovnBIOS_showdisks:
   mov %esi .diskinfix
   int $91
 
-.binsearch:
-  mov %ebx 0
-  mov %edx $7FFFFFFF
-.iter:
-  mov %esi %ebx
-  add %esi %edx
-  sar %esi 1
-  mov %eax $100
-  ldds %ecx
-  cmp %eax $100
-  je .nah
-  mov %ebx %esi
-  jmp .chk
-.nah:
-  mov %edx %esi
-  inx %edx
-.chk:
-  psh %esi
-  mov %esi %edx
-  sub %esi %ebx
-  cmp %esi 3
-  pop %esi
-  js .iter
-  mov %eax %esi
-  inx %eax ; %esi is last byte on disk
+; .binsearch:
+;   mov %ebx 0
+;   mov %edx $7FFFFFFF
+; .iter:
+;   mov %esi %ebx
+;   add %esi %edx
+;   sar %esi 1
+;   mov %eax $100
+;   ldds %ecx
+;   cmp %eax $100
+;   je .nah
+;   mov %ebx %esi
+;   jmp .chk
+; .nah:
+;   mov %edx %esi
+;   inx %edx
+; .chk:
+;   psh %esi
+;   mov %esi %edx
+;   sub %esi %ebx
+;   cmp %esi 3
+;   pop %esi
+;   js .iter
+;   mov %eax %esi
+  psh %edx
+  mov %edx %ecx
+  int $0B
+  mov %eax %edx
+  pop %edx
+  ; inx %eax ; %esi is last byte on disk
   div %eax $100000
   jsr GovnBIOS_vputi
   mov %esi .disksuffix

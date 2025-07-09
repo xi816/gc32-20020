@@ -563,6 +563,13 @@ govnos_diski:
 
   mov %esi diski_003
   int $91
+  mov %edx %e9
+  int $0B
+  mov %eax %edx
+  div %eax 1048576
+  jsr b_puti
+  mov %esi diski_004
+  int $91
   mov %eax '$' int $92
 
   jsr shell.aftexec
@@ -622,7 +629,8 @@ emp_sec_msg00: bytes "$Disk sectors used: ^\fK^@"
 emp_sec_msg01: bytes "^\r$$^@"
 diski_001:     bytes "^\fKDisk info^\r$  Disk letter: ^@"
 diski_002:     bytes "  Filesystem: ^@"
-diski_003:     bytes "  Disk size: ^\fBTODO^\r MiB ^@"
+diski_003:     bytes "  Disk size: ^@"
+diski_004:     bytes "MiB^@"
 prompt_001:    bytes "Enter PS prompt: ^@"
 bad_command:   bytes "Bad command: ^@"
 
@@ -636,12 +644,14 @@ help_msg:    bytes "^\fM+-------------------------------------------+$"
              bytes "^\fM|  ^\fKdate        ^\fLShow current date (%Y-%m-%d)^\fM |$"
              bytes "^\fM|  ^\fKecho        ^\fLEcho text back to output^\fM     |$"
              bytes "^\fM|  ^\fKexit        ^\fLExit from the shell^\fM          |$"
+             bytes "^\fM|  ^\fKfdisk       ^\fLFormat disk^\fM                  |$"
              bytes "^\fM|  ^\fKfsec        ^\fLFormat disk sector^\fM           |$"
              bytes "^\fM|  ^\fKgsfetch     ^\fLShow system info^\fM             |$"
              bytes "^\fM|  ^\fKhelp        ^\fLShow help^\fM                    |$"
              bytes "^\fM|  ^\fKmemv        ^\fLMemory viewer^\fM                |$"
              bytes "^\fM|  ^\fKprompt      ^\fLChange prompt^\fM                |$"
              bytes "^\fM|  ^\fKrand        ^\fLGet random 32-bit number^\fM     |$"
+             bytes "^\fM|  ^\fKreboot      ^\fLReboot GovnOS^\fM                |$"
              bytes "^\fM|  ^\fKtime        ^\fLShow current time (%H:%M:%S)^\fM |$"
              bytes "^\fM+-------------------------------------------+^\r$^@"
 
@@ -659,7 +669,7 @@ com_rebo:    bytes "reboot "
 hai_world:   bytes "hai world :3$^@"
 
 env_HOST:    bytes "GovnPC 32 Pro Max^@"
-env_OS:      bytes "GovnOS 0.9.7^@"
+env_OS:      bytes "GovnOS 0.10.0^@"
 env_CPU:     reserve 24 bytes ; To be filled by the O.E.M.
 
 ; TODO: unhardcode file header TODO: remove this todo
