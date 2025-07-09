@@ -4,10 +4,10 @@ diskv_main:
   jsr scani
   mov %ebx %eax
   mov %eax '$' int $92
-  mov %ecx 255
+  mov %ecx 511
 
   mov %esi %ebx
-  mul %esi 256
+  mul %esi 512
 .diskvl:
   ldds %e9
   inx %esi
