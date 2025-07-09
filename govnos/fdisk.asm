@@ -3,6 +3,7 @@ fdisk_main:
   int $91
 .again:
   int $93
+  int $92
   cmp %eax 'y'
   je .format
   cmp %eax 'Y'
@@ -23,6 +24,7 @@ fdisk_main:
   mov %egi header
   add %egi $10
   int $93
+  int $92
   sb %egi %eax
   mov %eax '$' int $92
   mov %esi fdisk004
@@ -74,5 +76,5 @@ fdisk001: bytes "Are you sure you want to format your disk?$^\fJWarning^\r: afte
 fdisk002: bytes "$Invalid option, try again [yn]: ^@"
 fdisk003: bytes "^\fJYour disk has been reset.^\r$^@"
 fdisk004: bytes "Formatting disk...$^@"
-fdisk005: bytes "Enter disk letter: ^@"
+fdisk005: bytes "$Enter disk letter: ^@"
 
