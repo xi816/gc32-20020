@@ -1015,6 +1015,29 @@ U8 INT_BEP(GC* gc, U8 I) { // 23 beep
   return 0;
 }
 
+U8 INT_CRL(GC* gc, U8 I) { // 3C curl
+  // esi -- address
+  // egi -- buffer to store result
+  I8 com[256];
+  I8 chunk[1024];
+  U32 b;
+  U32 ptr = gc->reg[EGI];
+  snprintf(com, 256, "curl %s 2>&1 -fsLl", gc->mem+gc->reg[ESI]);
+  FILE* p = popen(com, "r");
+  if (!p) {
+    fprintf(stderr, "gc32-20020: unable to fetch data\n");
+    return 1;
+  }
+  while ((b = fread(chunk, 1, 1024, p))) {
+    memcpy(gc->mem+ptr, chunk, b); // doesn't check for overflow fuck
+    ptr += b;
+    printf("read %d bytes to $%08X\n", ptr-gc->reg[EGI], ptr);
+  }
+  pclose(p);
+  puts("Curl done");
+  return 0;
+}
+
 U8 INT_UNK(GC* gc, U8 I) {
   fprintf(stderr, "Unknown interrupt $%02X used at PC$%08X\n", I, gc->EPC);
   return 1;
@@ -1024,7 +1047,7 @@ U8 (*INTERRUPTS[64])(GC*,U8) = {
   &INT_UNK, &INT_RED, &INT_WRT, &INT_DAT, &INT_RES, &INT_TIM, &INT_UNK, &INT_UNK, &INT_UNK, &INT_CNR, &INT_CPU, &INT_DID, &INT_UNK, &INT_UNK, &INT_UNK, &INT_SGF,
   &INT_UNK, &INT_GFL, &INT_GCL, &INT_GD2, &INT_GDM, &INT_GRD, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK,
   &INT_UNK, &INT_RND, &INT_WAI, &INT_BEP, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK,
-  &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK,
+  &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_UNK, &INT_CRL, &INT_UNK, &INT_UNK, &INT_UNK,
 };
 /* Interrupts implementation end */
 

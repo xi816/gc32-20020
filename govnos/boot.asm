@@ -384,6 +384,13 @@ shell:
   je govnos_date
 
   mov %esi command
+  mov %egi com_curl
+  mov %ecx ' '
+  jsr b_pstrcmp
+  cmp %eax $00
+  je govnos_curl
+
+  mov %esi command
   mov %egi com_time
   mov %ecx ' '
   jsr b_pstrcmp
@@ -503,6 +510,15 @@ shell:
 govnos_hi:
   mov %esi hai_world
   int $91
+  jmp shell.aftexec
+govnos_curl:
+  mov %esi command
+  add %esi 5 ; hardcode
+  mov %egi $01000000
+  int $3C
+  mov %esi $01000000
+  int $91
+  mov %eax '$' int $92
   jmp shell.aftexec
 govnos_date:
   int 3
@@ -637,6 +653,7 @@ bad_command:   bytes "Bad command: ^@"
 help_msg:    bytes "^\fM+-------------------------------------------+$"
              bytes "^\fM|^\fCGovnOS help page 1/1^\fM                       |$"
              bytes "^\fM|  ^\fKcat         ^\fLOutput file contents^\fM         |$"
+             bytes "^\fM|  ^\fKcurl        ^\fLGet data from URL (beta)^\fM     |$"
              bytes "^\fM|  ^\fKcalc        ^\fLCalculator^\fM                   |$"
              bytes "^\fM|  ^\fKcls         ^\fLClear the screen^\fM             |$"
              bytes "^\fM|  ^\fKdisk-i      ^\fLGet disk info^\fM                |$"
@@ -657,6 +674,7 @@ help_msg:    bytes "^\fM+-------------------------------------------+$"
 
 com_hi:      bytes "hi "
 com_cls:     bytes "cls "
+com_curl:    bytes "curl "
 com_date:    bytes "date "
 com_time:    bytes "time "
 com_help:    bytes "help "
@@ -669,7 +687,7 @@ com_rebo:    bytes "reboot "
 hai_world:   bytes "hai world :3$^@"
 
 env_HOST:    bytes "GovnPC 32 Pro Max^@"
-env_OS:      bytes "GovnOS 0.10.0^@"
+env_OS:      bytes "GovnOS 0.97.0^@"
 env_CPU:     reserve 24 bytes ; To be filled by the O.E.M.
 
 ; TODO: unhardcode file header TODO: remove this todo
@@ -681,12 +699,11 @@ nokrnl_err:                 bytes "^\fJFATAL ERROR!!!!!^\fP$"
                             bytes "The file krnl.bin could not be loaded from the disk$"
                             bytes "Press any key to shutdown$"
 
-command:     reserve 64 bytes
+command:     reserve 256 bytes
 clen:        reserve 2 bytes
 
 bs_seq:      bytes "^H ^H^@"
 cls_seq:     bytes "^\z^@"
 env_PS:      bytes "> ^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@"
-
 bse:         bytes $AA $55
 
