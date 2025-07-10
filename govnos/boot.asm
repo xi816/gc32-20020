@@ -516,9 +516,15 @@ govnos_curl:
   add %esi 5 ; hardcode
   mov %egi $01000000
   int $3C
+  cmp %edx 1
+  je .err
   mov %esi $01000000
   int $91
   mov %eax '$' int $92
+  jmp shell.aftexec
+.err:
+  mov %esi curlerr
+  int $91
   jmp shell.aftexec
 govnos_date:
   int 3
@@ -647,6 +653,7 @@ diski_001:     bytes "^\fKDisk info^\r$  Disk letter: ^@"
 diski_002:     bytes "  Filesystem: ^@"
 diski_003:     bytes "  Disk size: ^@"
 diski_004:     bytes "MiB^@"
+curlerr:       bytes "^\fJcurl^\r: connection refused$^@"
 prompt_001:    bytes "Enter PS prompt: ^@"
 bad_command:   bytes "Bad command: ^@"
 

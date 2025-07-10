@@ -1,4 +1,6 @@
 // CPU identificator: GC32-20020 Gen 1 Tiger
+#include <errno.h>
+
 #include <cpu32/proc/std.h>
 #include <cpu32/proc/interrupts.h>
 #include <cpu32/hid.h>
@@ -1022,19 +1024,24 @@ U8 INT_CRL(GC* gc, U8 I) { // 3C curl
   I8 chunk[1024];
   U32 b;
   U32 ptr = gc->reg[EGI];
+  if (system("ping 1.1.1.1 -c 1 > /dev/null 2> /dev/null")) {
+    gc->reg[EDX] = 0x01;
+    return 0;
+  }
   snprintf(com, 256, "curl %s 2>&1 -fsLl", gc->mem+gc->reg[ESI]);
+  printf("%d\n", errno);
   FILE* p = popen(com, "r");
+  printf("%d\n", errno);
   if (!p) {
-    fprintf(stderr, "gc32-20020: unable to fetch data\n");
-    return 1;
+    return 0;
   }
   while ((b = fread(chunk, 1, 1024, p))) {
     memcpy(gc->mem+ptr, chunk, b); // doesn't check for overflow fuck
     ptr += b;
-    printf("read %d bytes to $%08X\n", ptr-gc->reg[EGI], ptr);
   }
+  gc->mem[ptr] = 0x00;
   pclose(p);
-  puts("Curl done");
+  gc->reg[EDX] = 0x00;
   return 0;
 }
 
