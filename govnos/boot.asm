@@ -351,6 +351,8 @@ no_krnl:
   int $93
   hlt
 shell:
+  mov %esi shellrc_msg
+  int $91
 .prompt:
   mov %esi env_PS
   int $91
@@ -647,6 +649,7 @@ govnos_prompt:
 
 welcome_msg:   bytes "Welcome to ^\fDGovnOS^\r$^@"
 krnl_load_msg: bytes "Loading ^\fL:/krnl.bin/com^\r...$^@"
+shellrc_msg:   bytes "^\bP       $^\bE       $^\bB       $^\r$^@"
 emp_sec_msg00: bytes "$Disk sectors used: ^\fK^@"
 emp_sec_msg01: bytes "^\r$$^@"
 diski_001:     bytes "^\fKDisk info^\r$  Disk letter: ^@"
@@ -694,7 +697,7 @@ com_rebo:    bytes "reboot "
 hai_world:   bytes "hai world :3$^@"
 
 env_HOST:    bytes "GovnPC 32 Pro Max^@"
-env_OS:      bytes "GovnOS 0.97.0^@"
+env_OS:      bytes "GovnOS 0.97.1^@"
 env_CPU:     reserve 24 bytes ; To be filled by the O.E.M.
 
 ; TODO: unhardcode file header TODO: remove this todo
