@@ -1029,9 +1029,7 @@ U8 INT_CRL(GC* gc, U8 I) { // 3C curl
     return 0;
   }
   snprintf(com, 256, "curl %s 2>&1 -fsLl", gc->mem+gc->reg[ESI]);
-  printf("%d\n", errno);
   FILE* p = popen(com, "r");
-  printf("%d\n", errno);
   if (!p) {
     return 0;
   }
