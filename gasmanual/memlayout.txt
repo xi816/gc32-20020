@@ -1,17 +1,15 @@
-By default, GovnoCore 32-20020 allocates 32 MiB of memory for the emulator.
-Here is the chart of used and unused memory blocks layout.
-
-GovnoCore 32-20020 memory layout is as follows:
-  $00002000 - $000023FF | Interrupt vector table with 256 4-bit entries
-  $00030000 - $0003FFFF | Boot bank
-  $00700000 - $007FFFFF | BIOS code block
-  $00FE0000 - $00FEFFFF | Stack
-
-That implies that the memory blocks are:
-  $00000000 - $00001FFF | 8 KiB
-  $00040000 - $006FFFFF | 6.75 MiB
-  $00800000 - $00FDFFFF | 7.875 MiB
-  $00FF0000 - $01FFFFFF | 16.0625 MiB
+Full 32MB memory map:
+  $00000000-$00001FFF   8KB    - Reserved
+  $00002000-$000023FF   1KB    - Interrupt Vector Table (256 entries)
+  $00030000-$0003FFFF   64KB   - Boot bank
+  $00400000-$004FFFFF   1MB    - Video memory (640x480)
+  $00490000-$0049FFFF   64KB   - GPU control registers
+  $004A0000-$004AFFFF   64KB   - Color palette (RGB555LE stored as 16-bit words)
+  $004F0000-$004FFFFF   64KB   - Text mode buffer (80x60 with color attributes)
+  $00700000-$007FFFFF   1MB    - BIOS ROM
+  $00FE0000-$00FEFFFF   1MB    - Stack space
+  $00FF0000-$00FFFFFF   64KB   - Reserved
+  $01000000-$01FFFFFF   16MB   - General purpose RAM
 
 
 

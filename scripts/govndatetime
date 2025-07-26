@@ -1,0 +1,43 @@
+#!/usr/bin/python3.15
+from sys import argv;
+from scanf import scanf;
+from datetime import datetime;
+
+argc = len(argv);
+
+def gd(y, mo, d):
+  y = (y-1970);
+  mo -= 1;
+  d -= 1;
+  return ((y<<9) + (mo<<5) + d);
+
+def gt(h, m, s):
+  return h*3600+m*60+s;
+
+def gdt(y, mo, d, h, m, s):
+  date = gd(y, mo, d);
+  time = gt(h, m, s);
+  return date*86400+time;
+
+def main():
+  y = mo = d = h = m = s = 0;
+  if (argc != 2):
+    now = datetime.now();
+    y  = now.year;
+    mo = now.month;
+    d  = now.day;
+    h  = now.hour;
+    m  = now.minute;
+    s  = now.second;
+  else:
+    y, mo, d, h, m, s = scanf("%4d-%2d-%2dT%2d:%2d:%2d");
+  gdate  = gd(y, mo, d);
+  gtime  = gt(h, m, s);
+  gdtime = gdt(y, mo, d, h, m, s);
+  print("GovnDate:     %05d      %04X"  % (gdate,gdate));
+  print("GovnTime:     %05d      %04X"  % (gtime,gtime));
+  print("GovnDateTime: %010d %08X" % (gdtime,gdtime));
+  return 0;
+
+main();
+

@@ -1,0 +1,33 @@
+#!/usr/bin/python3
+import sys
+
+def rgb888_to_rgb555(hex_color):
+  hex_color = hex_color.lstrip('#')
+
+  r = int(hex_color[0:2], 16)
+  g = int(hex_color[2:4], 16)
+  b = int(hex_color[4:6], 16)
+
+  r5 = (r >> 3) & 0x1F
+  g5 = (g >> 3) & 0x1F
+  b5 = (b >> 3) & 0x1F
+
+  rgb555 = (r5 << 10) | (g5 << 5) | b5
+
+  hi = (rgb555 >> 8) & 0xFF
+  lo = rgb555 & 0xFF
+
+  return hi, lo
+
+if len(sys.argv) < 2:
+  print("usage: ./rgb8885222 (\"#RRGGBB\")+");
+  exit(1);
+
+try:
+  for i in sys.argv[1:]:
+    hi, lo = rgb888_to_rgb555(i);
+    print(end=f"${lo:02X} ${hi:02X} ");
+  print("\b");
+except ValueError:
+  print("Invalid color format. Please use \"#RRGGBB\" format.");
+

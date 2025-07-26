@@ -20,13 +20,14 @@ int32_t main(int argc, char** argv) {
     color = "\0";
     rcolor = "\0";
   }
-  char* targets[]         = {"gc32-20020", "gboot", "mkfs.govnfs", "ugovnfs", "prepare-disk"};
-  char* install_targets[] = {"gc32-20020", "gboot", "mkfs.govnfs", "ugovnfs", "prepare-disk", "kasm"};
+  char* targets[]         = {"gc32-20020", "gboot", "mkfs.govnfs", "ugovnfs", "ugovnfs3", "prepare-disk"};
+  char* install_targets[] = {"gc32-20020", "gboot", "mkfs.govnfs", "ugovnfs", "ugovnfs3", "prepare-disk", "kasm"};
   char* build_commands[] = {
     "%s %s core/main.c -Ilib/ -lm -lSDL3 -o gc32-20020",
     "%s %s core/gboot/main.c -o gboot",
     "%s %s core/mkfs.govnfs/main.c -o mkfs.govnfs",
     "%s %s core/ugovnfs/main2.c -Ilib/ -lm -o ugovnfs",
+    "%s %s core/ugovnfs/main3.c -Ilib/ -lm -o ugovnfs3",
     "%s %s core/prepare-disk.c -o prepare-disk"
   };
   char* install_commands[] = {
@@ -34,6 +35,7 @@ int32_t main(int argc, char** argv) {
     "install gboot /usr/local/bin/",
     "install mkfs.govnfs /usr/local/bin/",
     "install ugovnfs /usr/local/bin/",
+    "install ugovnfs3 /usr/local/bin/",
     "install prepare-disk /usr/local/bin/",
     "install asm/kasm /usr/local/bin/"
   };
@@ -42,6 +44,7 @@ int32_t main(int argc, char** argv) {
     "rm -f gboot",
     "rm -f mkfs.govnfs",
     "rm -f ugovnfs",
+    "rm -f ugovnfs3",
     "rm -f prepare-disk",
   };
 

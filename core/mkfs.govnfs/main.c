@@ -8,13 +8,13 @@
 
 int main(int argc, char** argv) {
   uint8_t i;
-  uint8_t HEADER[HEADER_SIZE] = "\x42GOVNFS2.0\0\0\0\0\0\0Z";
+  uint8_t HEADER[HEADER_SIZE] = "\x43GOVNFS2.1\0\0\0\0\0\0Z";
   srand(time(NULL));
   for (i = 0x0C; i < 0x10; i++) {
     HEADER[i] = rand() % 256;
   }
 
-  puts("mkfs.govnfs 2.0 for GovnFS 2.0");
+  puts("mkfs.govnfs 2.1 for GovnFS 2.1");
   if (argc == 1) {
     fprintf(stderr, "mkfs.govnfs: \033[91mfatal error:\033[0m no disk given\n");
     return 1;

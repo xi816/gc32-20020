@@ -104,10 +104,10 @@ U0 Write32(GC* gc, U32 addr, U32 val) {
 
 /* StackPush -- Push a 32-bit value onto the stack */
 U8 StackPush(GC* gc, U32 val) {
-  gc->mem[gc->reg[ESP]] = (val >> 24);
-  gc->mem[gc->reg[ESP]-1] = ((val >> 16) % 256);
-  gc->mem[gc->reg[ESP]-2] = ((val >> 8) % 256);
-  gc->mem[gc->reg[ESP]-3] = (val % 256);
+  gc->mem[gc->reg[ESP]-1] = (val >> 24);
+  gc->mem[gc->reg[ESP]-2] = ((val >> 16) % 256);
+  gc->mem[gc->reg[ESP]-3] = ((val >> 8) % 256);
+  gc->mem[gc->reg[ESP]-4] = (val % 256);
   gc->reg[ESP] -= 4;
   return 0;
 }
@@ -115,7 +115,7 @@ U8 StackPush(GC* gc, U32 val) {
 /* StackPop -- Pop a 32-bit value and return it */
 U32 StackPop(GC* gc) {
   gc->reg[ESP] += 4;
-  return Read32(gc, gc->reg[ESP]-3);
+  return Read32(gc, gc->reg[ESP]-4);
 }
 
 /* ReadRegClust -- A function to read the register cluster
@@ -419,11 +419,18 @@ U8 CMPri(GC* gc) {
   return 0;
 }
 
-// 78           call imm32
+// 78           jsr imm32
 U8 JSRa(GC* gc) {
   StackPush(gc, gc->EPC+6);
   // gc->EPC += 2; but PC is overwritten
   gc->EPC = Read32(gc, gc->EPC+2);
+  return 0;
+}
+
+// 88           jsr reg
+U8 JSRr(GC* gc) {
+  StackPush(gc, gc->EPC+2);
+  gc->EPC = gc->reg[gc->mem[gc->EPC+1]];
   return 0;
 }
 
@@ -497,6 +504,12 @@ U8 DIVri(GC* gc) {
 // 86           jmp imm32
 U8 JMPa(GC* gc) {
   gc->EPC = Read32(gc, gc->EPC+2);
+  return 0;
+}
+
+// 87           jmp reg
+U8 JMPr(GC* gc) {
+  gc->EPC = gc->reg[gc->mem[gc->EPC+1]];
   return 0;
 }
 
@@ -962,12 +975,12 @@ U8 INT_CPU(GC* gc, U8 I) { // 0A cpuid
   return 0;
 }
 
-U8 INT_DID(GC* gc, U8 I) { // 0B getdid
+U8 INT_DID(GC* gc, U8 I) { // 0B dinfo
   gc->reg[EDX] = gc->rom[gc->reg[EDX] % 8].size;
   return 0;
 }
 
-U8 INT_SGF(GC* gc, U8 I) { // 0F segfault
+U8 INT_SGF(GC* gc, U8 I) { // 0F segf
   *((char*)0) = 42; // 0x00000 is protected + unmapped in 64-bit
   return 0;
 }
@@ -1068,7 +1081,7 @@ U8 (*INSTS[256])() = {
   &ADDrb, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &ADDrw, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  ,
   &ADDbr, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &ADDwr, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  ,
   &CMPri, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &JSRa,  &RTS  , &SALrg, &SARrg, &LOBBg, &STBBg, &SBc  , &LBc  ,
-  &DIVri, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &JMPa , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &LOBWg, &STBWg, &SWc  , &LWc  ,
+  &DIVri, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &JMPa , &JMPr , &JSRr , &UNK  , &UNK  , &UNK  , &LOBWg, &STBWg, &SWc  , &LWc  ,
   &SUBrw, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &LOBDg, &STBDg, &SDc  , &LDc  ,
   &JEa  , &JNEa , &JCa  , &JNCa , &JSa  , &JNa  , &JIa  , &JNIa , &RE   , &RNE  , &RC   , &RNC  , &RS   , &RN   , &RI   , &RNI  ,
   &PSHi , &UNK  , &UNK  , &UNK  , &UNK  , &PSHr , &POPr , &UNK  , &LPa  , &LDDS , &LDDG , &STDS , &STDG , &UNK  , &UNK  , &POWrc,
@@ -1108,7 +1121,7 @@ U0 Reset(GC* gc) {
   // Reset the general purpose registers
   for (i = 0; i < 32; i++)
     gc->reg[i] = 0x00000000;
-  gc->reg[ESP] = 0x00FEFFFF;
+  gc->reg[ESP] = 0x00FF0000;
   gc->reg[EBP] = gc->reg[ESP];
   // Adjust ESP+/EBP+ extra registers
   gc->reg[R22] = gc->reg[ESP];

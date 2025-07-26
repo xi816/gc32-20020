@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+
 #define ptrlen(t) (sizeof(t)/sizeof(t[0]))
+
 int32_t main(int argc, char** argv) {
   if (argc <= 1 || argc >= 4) {
     fprintf(stderr, "Error: expected 1/2 arguments, got %d\n", argc-1);
@@ -26,52 +28,56 @@ int32_t main(int argc, char** argv) {
     sprintf(fcom, "./mkfs.govnfs %s %s", argv[1], argv[2]); system(fcom);
   }
   // Compile GovnBIOS
-  system("./kasm -o 700000 -e govnos/govnbios.asm govnos/govnbios.exp");
-  system("./kasm -o 700000 govnos/govnbios.asm bios.img");
+  system("./kasm -o 700000 -e govnos/bios/govnbios.asm govnos/exp/govnbios.exp");
+  system("./kasm -o 700000 govnos/bios/govnbios.asm bios.img");
 
   // Compile GovnOS
   // Bootloader
-  system("./kasm -i govnos/govnbios.exp govnos/boot.asm govnos/boot.bin");
-  system("./kasm -e govnos/boot.asm govnos/boot.exp");
+  system("./kasm -i govnos/exp/govnbios.exp govnos/boot/boot.asm govnos/bin/boot.bin");
+  system("./kasm -e govnos/boot/boot.asm govnos/exp/boot.exp");
 
   // Kernel
-  system("./kasm -o A00000 govnos/krnl.asm govnos/krnl.bin");
-  system("./kasm -o A00000 -e govnos/krnl.asm govnos/krnl.exp");
+  system("./kasm -cpp -o A00000 govnos/kernel/krnl.asm govnos/bin/krnl.bin");
+  system("./kasm -cpp -o A00000 -e govnos/kernel/krnl.asm govnos/exp/krnl.exp");
+
+  // Shell
+  system("./kasm -o B00000 -i govnos/exp/boot.exp -i govnos/exp/krnl.exp govnos/shell/shell.asm govnos/bin/shell.bin");
 
   // Core programs
-  system("./kasm -o 200000 -i govnos/boot.exp govnos/gsfetch.asm govnos/gsfetch.bin");
-  system("./kasm -o 200000 -i govnos/krnl.exp govnos/dir.asm govnos/dir.bin");
-  system("./kasm -o 200000 -i govnos/boot.exp -i govnos/krnl.exp govnos/gsh.asm govnos/gsh.bin");
-  system("./kasm -o 200000 -i govnos/krnl.exp govnos/calc.asm govnos/calc.bin");
-  system("./kasm -o 200000 -i govnos/krnl.exp -i govnos/boot.exp govnos/cat.asm govnos/cat.bin");
-  system("./kasm -o 200000 -i govnos/krnl.exp govnos/memv.asm govnos/memv.bin");
-  system("./kasm -o 200000 -i govnos/krnl.exp govnos/diskv.asm govnos/diskv.bin");
-  system("./kasm -o 200000 -i govnos/krnl.exp govnos/fsec.asm govnos/fsec.bin");
-  system("./kasm -o 200000 -i govnos/krnl.exp govnos/fdisk.asm govnos/fdisk.bin");
-  system("./kasm -o 200000 govnos/gtutor.asm govnos/gtutor.bin");
+  system("./kasm -o 200000 -i govnos/exp/boot.exp govnos/s1/gsfetch.asm govnos/bin/gsfetch.bin");
+  system("./kasm -o 200000 -i govnos/exp/krnl.exp govnos/s1/dir.asm govnos/bin/dir.bin");
+  system("./kasm -o 200000 -i govnos/exp/krnl.exp govnos/s1/calc.asm govnos/bin/calc.bin");
+  system("./kasm -o 200000 -i govnos/exp/krnl.exp govnos/s1/govnvim.asm govnos/bin/govnvim.bin");
+  system("./kasm -o 200000 -i govnos/exp/krnl.exp -i govnos/exp/boot.exp govnos/s1/cat.asm govnos/bin/cat.bin");
+  system("./kasm -o 200000 -i govnos/exp/krnl.exp govnos/s2/memv.asm govnos/bin/memv.bin");
+  system("./kasm -o 200000 -i govnos/exp/krnl.exp govnos/s2/diskv.asm govnos/bin/diskv.bin");
+  system("./kasm -o 200000 -i govnos/exp/krnl.exp govnos/s2/fsec.asm govnos/bin/fsec.bin");
+  system("./kasm -o 200000 -i govnos/exp/krnl.exp govnos/s2/fdisk.asm govnos/bin/fdisk.bin");
+  system("./kasm -o 200000 govnos/s3/gtutor.asm govnos/bin/gtutor.bin");
 
   // Load GovnOS
   printf("\nLoading GovnOS into %s%s%s... ", color, argv[1], rcolor); fflush(stdout);
   // Bootloader
-  sprintf(fcom, "./gboot C00000 %s govnos/boot.bin", argv[1]); system(fcom);
+  sprintf(fcom, "./gboot C00000 %s govnos/bin/boot.bin", argv[1]); system(fcom);
 
   // Core programs
-  sprintf(fcom, "./ugovnfs -c %s govnos/krnl.bin krnl.bin com", argv[1]); system(fcom);
-  sprintf(fcom, "./ugovnfs -c %s govnos/info.txt info txt", argv[1]); system(fcom);
-  sprintf(fcom, "./ugovnfs -c %s govnos/gsfetch.bin gsfetch com", argv[1]); system(fcom);
-  sprintf(fcom, "./ugovnfs -c %s govnos/dir.bin dir com", argv[1]); system(fcom);
-  sprintf(fcom, "./ugovnfs -c %s govnos/gsh.bin gsh com", argv[1]); system(fcom);
-  sprintf(fcom, "./ugovnfs -c %s govnos/calc.bin calc com", argv[1]); system(fcom);
-  sprintf(fcom, "./ugovnfs -c %s govnos/cat.bin cat com", argv[1]); system(fcom);
-  sprintf(fcom, "./ugovnfs -c %s govnos/memv.bin memv com", argv[1]); system(fcom);
-  sprintf(fcom, "./ugovnfs -c %s govnos/diskv.bin diskv com", argv[1]); system(fcom);
-  sprintf(fcom, "./ugovnfs -c %s govnos/fsec.bin fsec com", argv[1]); system(fcom);
-  sprintf(fcom, "./ugovnfs -c %s govnos/fdisk.bin fdisk com", argv[1]); system(fcom);
-  sprintf(fcom, "./ugovnfs -c %s govnos/gtutor.bin gtutor com", argv[1]); system(fcom);
-  sprintf(fcom, "./ugovnfs -c %s govnos/test.txt test.txt txt", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/bin/krnl.bin krnl.bin bin", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/s3/info.txt info txt", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/bin/gsfetch.bin gsfetch bin", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/bin/dir.bin dir bin", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/bin/shell.bin shell.bin bin", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/bin/calc.bin calc bin", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/bin/cat.bin cat bin", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/bin/memv.bin memv bin", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/bin/diskv.bin diskv bin", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/bin/fsec.bin fsec bin", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/bin/fdisk.bin fdisk bin", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/bin/gtutor.bin gtutor bin", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/bin/govnvim.bin govnvim bin", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/s3/test.txt test.txt txt", argv[1]); system(fcom);
 
   // Дима
-  sprintf(fcom, "./ugovnfs -c %s govnos/dima.txt nagiev.txt txt", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/s3/dima.txt nagiev.txt txt", argv[1]); system(fcom);
   return 0;
 }
 

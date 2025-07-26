@@ -163,7 +163,7 @@ I32 main(I32 argc, I8** argv) {
   fseek(fl, 0, SEEK_SET);
 
   // Check the disk
-  if (disk[0x000000] != 0x42) {
+  if (disk[0x000000] != 0x43) {
     printf("ugovnfs: \033[91mdisk corrupted:\033[0m unknown disk header magic byte `$%02X`\n", disk[0x000000]);
     free(disk);
     return 1;

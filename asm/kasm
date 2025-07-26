@@ -25,8 +25,8 @@ T_MCR   = 0x0B;
 T_DREB  = 0x0C;
 T_DREW  = 0x0D;
 T_DREH  = 0x0E;
-T_EOL   = 0x0C;
-T_EOF   = 0x0D;
+T_EOL   = 0x0F;
+T_EOF   = 0x10;
 
 ASTINS   = 0x00;
 ASTBYTES = 0x01;
@@ -357,6 +357,7 @@ ParseInst = lambda toks, b, pos, pc: \
    (ASTINS, "ORArc", (toks[pos+1][1], toks[pos+2][1]), pos + 3, pc + 2) if ((b == "ora") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_REG)) else
    (ASTINS, "XORrc", (toks[pos+1][1], toks[pos+2][1]), pos + 3, pc + 2) if ((b == "xor") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_REG)) else
    (ASTINS, "JMPa", toks[pos+1][1], pos + 2, pc + 6)                    if ((b == "jmp") and (toks[pos+1][0] == T_ID)) else
+   (ASTINS, "JMPr", toks[pos+1][1], pos + 2, pc + 2)                    if ((b == "jmp") and (toks[pos+1][0] == T_REG)) else
    (ASTINS, "JMP2", toks[pos+1][1], pos + 2, pc + 6)                    if ((b == "jmp") and (toks[pos+1][0] == T_INT)) else
    (ASTINS, "JEa", toks[pos+1][1], pos + 2, pc + 6)                     if ((b == "jz") and (toks[pos+1][0] == T_ID)) else
    (ASTINS, "JEa", toks[pos+1][1], pos + 2, pc + 6)                     if ((b == "je") and (toks[pos+1][0] == T_ID)) else
@@ -378,8 +379,10 @@ ParseInst = lambda toks, b, pos, pc: \
    (ASTINS, "DEXb",  toks[pos+1][1], pos + 2, pc + 6)                   if ((b == "dex") and (toks[pos+1][0] == T_ADDRB)) else
    (ASTINS, "DEXw",  toks[pos+1][1], pos + 2, pc + 6)                   if ((b == "dex") and (toks[pos+1][0] == T_ADDRW)) else
    (ASTINS, "JSRa", toks[pos+1][1], pos + 2, pc + 6)                    if ((b == "jsr") and (toks[pos+1][0] == T_ID)) else
+   (ASTINS, "JSRr", toks[pos+1][1], pos + 2, pc + 2)                    if ((b == "jsr") and (toks[pos+1][0] == T_REG)) else
    (ASTINS, "JSR2", toks[pos+1][1], pos + 2, pc + 6)                    if ((b == "jsr") and (toks[pos+1][0] == T_INT)) else
    (ASTINS, "CMPri", (toks[pos+1][1], toks[pos+2][1]), pos + 3, pc + 6) if ((b == "cmp") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_INT)) else
+   (ASTINS, "CMPrl", (toks[pos+1][1], toks[pos+2][1]), pos + 3, pc + 6) if ((b == "cmp") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_ID)) else
    (ASTINS, "LBc", (toks[pos+1][1], toks[pos+2][1]), pos + 3, pc + 2)   if ((b == "lb") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_REG)) else
    (ASTINS, "LWc", (toks[pos+1][1], toks[pos+2][1]), pos + 3, pc + 2)   if ((b == "lw") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_REG)) else
    (ASTINS, "LDc", (toks[pos+1][1], toks[pos+2][1]), pos + 3, pc + 2)   if ((b == "ld") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_REG)) else
@@ -535,6 +538,7 @@ CompileInst = lambda prog, b, labels, pos: \
    ((0x60, b[2][1], *As32(b[2][0])), pos+1)         if (b[1] == "ADDbr") else
    ((0x68, b[2][1], *As32(b[2][0])), pos+1)         if (b[1] == "ADDwr") else
    ((0x86,0x00, *As32(labels[b[2]])), pos+1)        if (b[1] == "JMPa") else
+   ((0x87, b[2]), pos+1)                            if (b[1] == "JMPr") else
    ((0x86,0x00, *As32(b[2])), pos+1)                if (b[1] == "JMP2") else
    ((0xA0,0x00, *As32(labels[b[2]])), pos+1)        if (b[1] == "JEa") else
    ((0xA1,0x00, *As32(labels[b[2]])), pos+1)        if (b[1] == "JNEa") else
@@ -559,6 +563,7 @@ CompileInst = lambda prog, b, labels, pos: \
    ((0x42,0x00, *As32(b[2])), pos+1)                if (b[1] == "DEXw") else
    ((0x34, (b[2][0]<<4)+b[2][1]), pos+1)            if (b[1] == "GOIDA") else
    ((0x70, b[2][0], *As32(b[2][1])), pos+1)         if (b[1] == "CMPri") else
+   ((0x70, b[2][0], *As32(labels[b[2][1]])), pos+1) if (b[1] == "CMPri") else
    ((0x37, (b[2][0]<<4)+b[2][1]), pos+1)            if (b[1] == "CMPrc") else
    ((0x7F, (b[2][0]<<4)+b[2][1]), pos+1)            if (b[1] == "LBc") else
    ((0x8F, (b[2][0]<<4)+b[2][1]), pos+1)            if (b[1] == "LWc") else
@@ -580,6 +585,7 @@ CompileInst = lambda prog, b, labels, pos: \
    ((0xB0,0x00, *As32(labels[b[2]])), pos+1)        if (b[1] == "PSHl") else
    ((0xB5, b[2]), pos+1)                            if (b[1] == "PSHr") else
    ((0x78,0x00, *As32(labels[b[2]])), pos+1)        if (b[1] == "JSRa") else
+   ((0x88, b[2]), pos+1)                            if (b[1] == "JSRr") else
    ((0x78,0x00, *As32(b[2])), pos+1)                if (b[1] == "JSR2") else
    ((0xB9,b[2]), pos+1)                             if (b[1] == "LDDS") else
    ((0xBA,b[2]), pos+1)                             if (b[1] == "LDDG") else

@@ -4,10 +4,11 @@ the newest GovnoCore CPU by the time of 25-06-22
 
 It will cover it's registers, memory layout and binary structure.
 
-GovnoCore 32-20020 instructions follow 1 of 2 formats
-  <opc:8> <imm:8> | 2 bytes
-  or
-  <opc:8> <imm:8> <imm:32> | 4 bytes
+-=== Instruction Set ===-
+Instructions follow one of two formats:
+1. <opcode:8> <imm8>          (2 bytes)
+2. <opcode:8> <imm8> <imm32>  (6 bytes)
+
 The opcode is always 8 bits, storing a value from 0 to 255.
 The 8-bit immediate often stores the destination register, or
 a register cluster.
@@ -20,7 +21,112 @@ registers. Specifically for ESP and EBP not breaking with
 rswp:$F0 instruction, the e22-e23 registers are also initialized
 to default stack pointer value: $00FEFFFF.
 
+Main instruction categories:
+  -- Data Movement --
+  MOVri  $C0 - Move immediate to register
+  MOVrb  $D0 - Move memory byte to register
+  MOVrw  $D8 - Move memory word to register
+  MOVrd  $D4 - Move memory dword to register
+  MOVbr  $E0 - Move register to memory byte
+  MOVwr  $E8 - Move register to memory word
+  MOVdr  $E4 - Move register to memory dword
+  MOVrc  $CF - Move between registers (register cluster)
+  RSWP   $F0 - Swap first and second register banks
 
+  -- Arithmetic/Logic --
+  ADDri  $48 - Add immediate to register
+  ADDrb  $50 - Add memory byte to register
+  ADDrw  $58 - Add memory word to register
+  ADDrc  $47 - Add registers
+  SUBri  $10 - Subtract immediate from register
+  SUBrb  $18 - Subtract memory byte from register
+  SUBrw  $90 - Subtract memory word from register
+  SUBrc  $C8 - Subtract registers
+  MULri  $08 - Multiply register by immediate
+  MULrc  $C9 - Multiply registers
+  DIVri  $80 - Divide register by immediate
+  DIVrc  $CA - Divide registers
+  ANDrc  $38 - Bitwise AND registers
+  ORArc  $39 - Bitwise OR registers
+  XORrc  $3A - Bitwise XOR registers
+  NOT    $0C - Bitwise NOT
+  NRMr   $0D - Normalize (convert to 0/1)
+  SALrg  $7A - Shift arithmetic left
+  SARrg  $7B - Shift arithmetic right
+
+  -- Stack Operations --
+  PSHi   $B0 - Push immediate
+  PSHr   $B5 - Push register
+  POPr   $B6 - Pop to register
+
+  -- Control Flow --
+  JMPa   $86 - Jump to address
+  JMPr   $87 - Jump to register address
+  JSRa   $78 - Jump to subroutine (address)
+  JSRr   $88 - Jump to subroutine (register)
+  RTS    $79 - Return from subroutine
+  JEa    $A0 - Jump if equal (ZF=1)
+  JNEa   $A1 - Jump if not equal (ZF=0)
+  JCa    $A2 - Jump if carry (CF=1)
+  JNCa   $A3 - Jump if no carry (CF=0)
+  JSa    $A4 - Jump if signed (NF=1)
+  JNa    $A5 - Jump if not signed (NF=0)
+  JIa    $A6 - Jump if interrupts enabled (IF=1)
+  JNIa   $A7 - Jump if interrupts disabled (IF=0)
+  LPa    $B8 - Loop while ECX != 0
+
+  -- Comparison --
+  CMPri  $70 - Compare register with immediate
+  CMPrc  $37 - Compare two registers
+
+  -- I/O and System --
+  HLT    $00 - Halt execution
+  TRAP   $01 - Enter debugger
+  STI    $03 - Store interrupt vector
+  IRTS   $04 - Interrupt return
+  NOP    $05 - No operation
+  INT    $41 - Software interrupt
+
+  -- Floating Point (FPU) --
+  CIF    $F8 - Convert integer to float
+  CFI    $F9 - Convert float to integer
+  ADDF   $FA - Floating point add
+  SUBF   $FB - Floating point subtract
+  MULF   $FC - Floating point multiply
+  DIVF   $FD - Floating point divide
+  NEGF   $FE - Negate float
+
+  -- String/Memory Operations --
+  SBc    $7E - Store byte and increment
+  LBc    $7F - Load byte and increment
+  SWc    $8E - Store word and increment
+  LWc    $8F - Load word and increment
+  SDc    $9E - Store dword and increment
+  LDc    $9F - Load dword and increment
+
+-=== Interrupts ===-
+Interrupt Vector Table is located at $00002000 (256 entries, 4 bytes each)
+
+Standard interrupts:
+  $00 - exit     - Exit program
+  $01 - read     - Read character (char to stack)
+  $02 - write    - Write character (char from stack)
+  $03 - date     - Get date (returns in EDX)
+  $04 - reset    - Reset CPU
+  $09 - canread  - Check if input available (returns bool in EDX)
+  $0A - cpuid    - CPU identification
+  $0B - dinfo    - Get disk info
+  $0F - segf     - Trigger segfault
+  $11 - gflush   - GPU flush
+  $12 - gclear   - GPU clear
+  $13 - gdraw256 - GPU draw 256-color sprite
+  $14 - gdrawm   - GPU draw monochrome sprite
+  $15 - gread    - GPU read sprite
+  $21 - rand     - Random number (returns in EDX)
+  $22 - wait     - Delay (milliseconds in EDX)
+  $23 - beep     - Play beep (frequency in ESI, ASDR in EDX, volume &
+                   channel in EAX)
+  $3C - curl     - HTTP request (URL in ESI, buffer in EGI)
 
 
 

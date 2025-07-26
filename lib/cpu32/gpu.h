@@ -42,7 +42,9 @@ enum ggcolors {
   EWHITE   = 15,
 };
 
-U0 GGinit(gc_gg32* gg, U8 scale) {
+U0 GGinit(U8* mem, gc_gg32* gg, U8 scale) {
+  memcpy(mem+0x004A1000, CHARSET, 2048);
+  memcpy(mem+0x004A1800, CHARSET816, 4096);
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
   SDL_SetAppMetadata("GovnoCore 32-20020", "32-20020", "io.github.xi816.gc32-20020");
   gg->scale = scale;
@@ -65,6 +67,7 @@ U0 GGstop(gc_gg32* gg) {
 
 U0 GGupload(GC* gc) {
   gc->gg.surf->pixels = gc->mem + 0x400000;
+  SDL_SetSurfacePalette(gc->gg.surf, gc->gg.pal);
   SDL_BlitSurfaceScaled(gc->gg.surf, 0, SDL_GetWindowSurface(gc->gg.win), 0, SDL_SCALEMODE_NEAREST);
   SDL_UpdateWindowSurface(gc->gg.win);
 }
@@ -118,7 +121,7 @@ U0 GGpage_text(GC* gc) {
       col = b[(y * 80 + x) * 2 + 1];
       fg = col & 0x0F;
       bg = (col >> 4) & 0x0F;
-      fontdata = &CHARSET[ch * 8];
+      fontdata = gc->mem+0x004A1000+(ch*8);
       for (r = 0; r < 8; r++) for (c = 0; c < 8; c++)
         sb[(y * 8 + r) * 640 + (x * 8 + c)] = ((fontdata[r] >> (7 - c)) & 1) ? fg : bg;
     }
@@ -126,9 +129,28 @@ U0 GGpage_text(GC* gc) {
   GGpage_RGB555LE(gc);
 }
 
-U0 (*GGPAGE[3])(GC*) = {&GGpage_CGA16, &GGpage_RGB555LE, &GGpage_text};
+U0 GGpage_text816(GC* gc) {
+  U8* b = gc->mem + 0x004F0000;
+  U8* sb = gc->mem + 0x00400000;
+  U8 x, y, ch, col, fg, bg, r, c;
+  U8* fontdata;
+  for (y = 0; y < 30; y++) {
+    for (x = 0; x < 80; x++) {
+      ch = b[(y * 80 + x) * 2];
+      col = b[(y * 80 + x) * 2 + 1];
+      fg = col & 0x0F;
+      bg = (col >> 4) & 0x0F;
+      fontdata = gc->mem+0x004A1800+(ch*16);
+      for (r = 0; r < 16; r++) for (c = 0; c < 8; c++)
+        sb[(y * 16 + r) * 640 + (x * 8 + c)] = ((fontdata[r] >> (7 - c)) & 1) ? fg : bg;
+    }
+  }
+  GGpage_RGB555LE(gc);
+}
+
+U0 (*GGPAGE[4])(GC*) = {&GGpage_CGA16, &GGpage_RGB555LE, &GGpage_text, &GGpage_text816};
 U0 GGpage(GC* gc) {
-  GGPAGE[gc->mem[0x49FF00]%3](gc);
+  GGPAGE[gc->mem[0x49FF00]%4](gc);
 }
 
 // PPU functions

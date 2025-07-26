@@ -1,10 +1,24 @@
-The Govno Core 32-20020 has 34 registers in total.
-These include 32 general purpose registers, which can be accessed by these names:
-  EAX, EBX, ECX, EDX, ESI, EDI, ESP, EBP, E8 - E31
-and aliased by
-  E0 - E31 or R0 - R31,
-Processor Status Flags, or PS,
-and Program Counter, or EPC.
+The CPU has 32 general-purpose 32-bit registers with two naming schemes:
+  EAX, EBX, ECX, EDX, ESI, EGI, ESP, EBP, E8-E31
+  R0-R31 (aliases)
+
+Special registers:
+  EPC (Program Counter) - 32-bit instruction pointer
+  PS (Processor Status) - 8-bit flags register:
+    b6: Interrupt Flag (IF) - 1=enabled, 0=disabled
+    b2: Zero Flag (ZF) - Set when result is zero
+    b1: Negative Flag (NF) - Set when result is negative
+    b0: Carry Flag (CF) - Set on carry/borrow
+
+Register conventions:
+  EAX - Accumulator (used for return values)
+  EBX - Base register
+  ECX - Counter (used in loops)
+  EDX - Data
+  ESI - Source index
+  EGI - Destination index
+  ESP - Stack pointer (grows downward from $00FEFFFF)
+  EBP - Base pointer
 
 
 

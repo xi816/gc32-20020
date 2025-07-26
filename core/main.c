@@ -153,7 +153,7 @@ I32 main(I32 argc, I8** argv) {
   }
 
   // GPU
-  GGinit(&(gc.gg), scale);
+  GGinit(gc.mem, &(gc.gg), scale);
   GAinit(&(gc.ga));
 
   int runcode = 0xFF;
