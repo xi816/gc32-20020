@@ -326,6 +326,27 @@ U8 XORrc(GC* gc) {
   return 0;
 }
 
+// 3B           and reg imm
+U8 ANDri(GC* gc) {
+  gc->reg[gc->mem[gc->EPC+1]] &= Read32(gc, gc->EPC+2);
+  gc->EPC += 6;
+  return 0;
+}
+
+// 3C           ora reg imm
+U8 ORAri(GC* gc) {
+  gc->reg[gc->mem[gc->EPC+1]] |= Read32(gc, gc->EPC+2);
+  gc->EPC += 6;
+  return 0;
+}
+
+// 3D           xor reg imm
+U8 XORri(GC* gc) {
+  gc->reg[gc->mem[gc->EPC+1]] ^= Read32(gc, gc->EPC+2);
+  gc->EPC += 6;
+  return 0;
+}
+
 // 40           inx @imm32
 U8 INXw(GC* gc) {
   U32 addr = Read32(gc, gc->EPC+2);
@@ -1076,7 +1097,7 @@ U8 (*INSTS[256])() = {
   &HLT  , &TRAP , &UNK  , &STI  , &IRTS , &NOP  , &UNK  , &UNK  , &MULri, &UNK  , &UNK  , &UNK  , &NOT  , &NRMr , &LOADF, &LOADA,
   &SUBri, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &SUBrb, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  ,
   &INXr , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &DEXr , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  ,
-  &INXb , &UNK  , &DEXb , &ZZDRF, &GOIDA, &UNK  , &UNK  , &CMPrc, &ANDrc, &ORArc, &XORrc, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  ,
+  &INXb , &UNK  , &DEXb , &ZZDRF, &GOIDA, &UNK  , &UNK  , &CMPrc, &ANDrc, &ORArc, &XORrc, &ANDri, &ORAri, &XORri, &UNK  , &UNK  ,
   &INXw , &INT  , &DEXw , &UNK  , &UNK  , &UNK  , &UNK  , &ADDrc, &ADDri, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  ,
   &ADDrb, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &ADDrw, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  ,
   &ADDbr, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &ADDwr, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  ,
@@ -1088,7 +1109,7 @@ U8 (*INSTS[256])() = {
   &MOVri, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &SUBrc, &MULrc, &DIVrc, &UNK  , &UNK  , &UNK  , &UNK  , &MOVrc,
   &MOVrb, &UNK  , &UNK  , &UNK  , &MOVrd, &UNK  , &UNK  , &UNK  , &MOVrw, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  ,
   &MOVbr, &UNK  , &UNK  , &UNK  , &MOVdr, &UNK  , &UNK  , &UNK  , &MOVwr, &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  ,
-  &RSWP , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &CIF  , &CFI  , &ADDF , &SUBF , &MULF , &DIVF , &NEGF , &UNK
+  &RSWP , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &UNK  , &CIF  , &CFI  , &ADDF , &SUBF , &MULF , &DIVF , &NEGF , &POWF
 /*INSTS_END*/};
 
 U8 (*INSTS_PG0F[256])() = {

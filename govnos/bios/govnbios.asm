@@ -604,7 +604,7 @@ GovnBIOS_cur: .posh: reserve 2 bytes .c: reserve 1 bytes
 
 INTROMSG:
   bytes "^\rGovnBIOS [" $FB "] Gravno power we need but don't implement$"
-  bytes "(C) 2025 " $F0 "816 & ^\bP ^\bA Roma$$"
+  bytes $9B " 2025 " $F0 "816 & ^\bP ^\bA Roma$$"
   bytes "^\fOBoot   [ ^\fLHOLY^\fO ]$^@"
 
 RAMMSGPRE: bytes "RAM    [ ^\fK^@"

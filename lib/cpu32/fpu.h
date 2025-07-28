@@ -72,4 +72,16 @@ U8 NEGF(GC* gc) {
   return 0;
 }
 
+// FF           powf32
+U8 POWF(GC* gc) {
+  gcrc_t rc = ReadRegClust(gc->mem[gc->EPC+1]);
+  F32 r1 = *(F32*)(gc->reg+rc.x);
+  F32 r2 = *(F32*)(gc->reg+rc.y);
+  F32 res = pow(r1, r2);
+  gc->reg[rc.x] = *(U32*)& res;
+  gc->EPC += 2;
+  return 0;
+}
+
 /* FPU instructions end */
+
