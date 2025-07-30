@@ -151,7 +151,7 @@ I32 main(I32 argc, I8** argv) {
       break;
     }
   }
-
+  SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "pulseaudio,coreaudio,pipewire,alsa,wasapi,dsound"); // For linux, wsl, macos sound
   // GPU
   GGinit(gc.mem, &(gc.gg), scale);
   GAinit(&(gc.ga));
