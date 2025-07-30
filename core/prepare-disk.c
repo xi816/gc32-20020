@@ -44,15 +44,16 @@ int32_t main(int argc, char** argv) {
   system("./kasm -o B00000 -i govnos/exp/boot.exp -i govnos/exp/krnl.exp govnos/shell/shell.asm govnos/bin/shell.bin");
 
   // Core programs
-  system("./kasm -o 200000 -i govnos/exp/boot.exp govnos/s1/gsfetch.asm govnos/bin/gsfetch.bin");
-  system("./kasm -o 200000 -i govnos/exp/krnl.exp govnos/s1/dir.asm govnos/bin/dir.bin");
-  system("./kasm -o 200000 -i govnos/exp/krnl.exp govnos/s1/calc.asm govnos/bin/calc.bin");
-  system("./kasm -o 200000 -i govnos/exp/krnl.exp govnos/s1/govnvim.asm govnos/bin/govnvim.bin");
-  system("./kasm -o 200000 -i govnos/exp/krnl.exp -i govnos/exp/boot.exp govnos/s1/cat.asm govnos/bin/cat.bin");
-  system("./kasm -o 200000 -i govnos/exp/krnl.exp govnos/s2/memv.asm govnos/bin/memv.bin");
-  system("./kasm -o 200000 -i govnos/exp/krnl.exp govnos/s2/diskv.asm govnos/bin/diskv.bin");
-  system("./kasm -o 200000 -i govnos/exp/krnl.exp govnos/s2/fsec.asm govnos/bin/fsec.bin");
-  system("./kasm -o 200000 -i govnos/exp/krnl.exp govnos/s2/fdisk.asm govnos/bin/fdisk.bin");
+  system("./kasm -o 200000 -i govnos/boot.exp govnos/s1/gsfetch.asm govnos/bin/gsfetch.bin");
+  system("./kasm -o 200000 -i govnos/krnl.exp govnos/s1/dir.asm govnos/bin/dir.bin");
+  system("./kasm -o 200000 -i govnos/krnl.exp govnos/s1/calc.asm govnos/bin/calc.bin");
+  system("./kasm -o 200000 -i govnos/krnl.exp govnos/s1/govnvim.asm govnos/bin/govnvim.bin");
+  system("./kasm -o 200000 -i govnos/krnl.exp -i govnos/exp/boot.exp govnos/s1/cat.asm govnos/bin/cat.bin");
+  system("./kasm -o 200000 -i govnos/krnl.exp govnos/s2/memv.asm govnos/bin/memv.bin");
+  system("./kasm -o 200000 -i govnos/krnl.exp govnos/s2/diskv.asm govnos/bin/diskv.bin");
+  system("./kasm -o 200000 -i govnos/krnl.exp govnos/s2/fsec.asm govnos/bin/fsec.bin");
+  system("./kasm -o 200000 -i govnos/krnl.exp govnos/s2/fdisk.asm govnos/bin/fdisk.bin");
+  system("./kasm -o 200000 -i govnos/krnl.exp govnos/s1/snake.asm govnos/bin/snake.bin");
   system("./kasm -o 200000 govnos/s3/gtutor.asm govnos/bin/gtutor.bin");
 
   // Load GovnOS
@@ -74,6 +75,7 @@ int32_t main(int argc, char** argv) {
   sprintf(fcom, "./ugovnfs -c %s govnos/bin/fdisk.bin fdisk bin", argv[1]); system(fcom);
   sprintf(fcom, "./ugovnfs -c %s govnos/bin/gtutor.bin gtutor bin", argv[1]); system(fcom);
   sprintf(fcom, "./ugovnfs -c %s govnos/bin/govnvim.bin govnvim bin", argv[1]); system(fcom);
+  sprintf(fcom, "./ugovnfs -c %s govnos/bin/snake.bin snake bin", argv[1]); system(fcom);
   sprintf(fcom, "./ugovnfs -c %s govnos/s3/test.txt test.txt txt", argv[1]); system(fcom);
 
   // Дима
